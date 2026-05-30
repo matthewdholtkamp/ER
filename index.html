@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GLWACH ER Commander's Report Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, Helvetica, sans-serif; background: #f4f4f4; color: #1a1a1a; line-height: 1.4; }
+  .top-bar { background: #000; color: #fff; padding: 6px 20px; font-size: 12px; border-bottom: 3px solid #FFCC01; }
+  .header { background: #000; color: #fff; padding: 18px 20px; display: flex; align-items: center; border-bottom: 4px solid #FFCC01; }
+  .header .star { color: #FFCC01; font-size: 36px; margin-right: 16px; }
+  .header h1 { font-size: 22px; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
+  .header h2 { font-size: 13px; color: #FFCC01; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; font-weight: normal; }
+  .subheader { background: #4b5320; color: #fff; padding: 8px 20px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
+  .container { max-width: 1400px; margin: 20px auto; padding: 0 20px; }
+  .drop-zone { border: 3px dashed #4b5320; background: #fff; padding: 40px; text-align: center; color: #4b5320; font-size: 18px; font-weight: bold; text-transform: uppercase; cursor: pointer; transition: all 0.2s; border-radius: 4px; }
+  .drop-zone:hover, .drop-zone.dragover { background: #FFCC01; color: #000; border-color: #000; }
+  .drop-zone .hint { font-size: 13px; font-weight: normal; color: #666; margin-top: 8px; text-transform: none; }
+  .controls { margin-top: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  button { background: #4b5320; color: #fff; border: none; padding: 8px 16px; cursor: pointer; font-weight: bold; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; border-radius: 2px; }
+  button:hover { background: #000; color: #FFCC01; }
+  .file-list { margin-top: 8px; font-size: 12px; color: #555; }
+  .panel { background: #fff; margin-top: 20px; padding: 20px; border-left: 4px solid #FFCC01; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .panel h3 { color: #000; font-size: 16px; text-transform: uppercase; border-bottom: 2px solid #4b5320; padding-bottom: 6px; margin-bottom: 14px; letter-spacing: 1px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .stat { background: #000; color: #FFCC01; padding: 14px; text-align: center; border-bottom: 3px solid #FFCC01; }
+  .stat .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #fff; }
+  .stat .value { font-size: 28px; font-weight: bold; margin-top: 4px; color: #FFCC01; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+  th { background: #000; color: #FFCC01; padding: 8px; text-align: left; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; border: 1px solid #333; }
+  td { padding: 6px 8px; border: 1px solid #ddd; }
+  tr:nth-child(even) td { background: #f9f9f9; }
+  .empty-state { text-align: center; padding: 40px; color: #888; font-style: italic; }
+  .footer { text-align: center; color: #555; font-size: 11px; padding: 20px; margin-top: 30px; border-top: 1px solid #ccc; }
+  canvas { max-height: 400px; }
+  .swatch { display: inline-block; width: 12px; height: 12px; border: 1px solid #888; vertical-align: middle; margin-right: 4px; }
+
+  /* Trend controls */
+  .trend-controls {
+    display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+    margin-bottom: 12px; padding: 8px 12px; background: #f9f9f9;
+    border: 1px solid #ddd; border-radius: 4px;
+  }
+  .trend-controls label { font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .trend-controls input[type=checkbox] { width: 14px; height: 14px; cursor: pointer; }
+  .chart-badge {
+    margin-left: auto; background: #4b5320; color: #fff;
+    padding: 3px 10px; border-radius: 10px; font-size: 11px;
+    font-weight: bold; text-transform: uppercase; letter-spacing: 1px;
+  }
+
+  /* Chart insight box */
+  .chart-insight {
+    margin-top: 10px; padding: 10px 14px;
+    background: #f0f4e8; border-left: 4px solid #4b5320;
+    border-radius: 2px; font-size: 13px; color: #1a1a1a;
+    line-height: 1.6;
+  }
+  .chart-insight strong { color: #4b5320; }
+
+  /* Collapsible debug section */
+  .collapsible { background: #fff; margin-top: 20px; border-left: 4px solid #FFCC01; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+  .collapsible-header { background: #000; color: #FFCC01; padding: 12px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; text-transform: uppercase; font-size: 13px; letter-spacing: 1px; font-weight: bold; }
+  .collapsible-header:hover { background: #1a1a1a; }
+  .collapsible-header .arrow { transition: transform 0.2s; font-size: 14px; }
+  .collapsible.open .collapsible-header .arrow { transform: rotate(90deg); }
+  .collapsible-body { display: none; padding: 16px 20px; }
+  .collapsible.open .collapsible-body { display: block; }
+  .debug-panel { background: #1a1a1a; color: #0f0; font-family: monospace; font-size: 11px; padding: 12px; border-radius: 4px; max-height: 600px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
+  .debug-panel .err  { color: #ff6b6b; }
+  .debug-panel .warn { color: #FFCC01; }
+  .debug-panel .info { color: #6cf; }
+  .debug-panel .ok   { color: #6f6; }
+  .debug-empty { color: #888; font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">An Official U.S. Army Medical Treatment Facility Tool &nbsp;|&nbsp; FOR OFFICIAL USE ONLY</div>
+<div class="header">
+  <span class="star">★</span>
+  <div>
+    <h1>General Leonard Wood Army Community Hospital</h1>
+    <h2>Emergency Department — Commander's Report Tracker</h2>
+  </div>
+</div>
+<div class="subheader">Fort Leonard Wood, Missouri &nbsp;•&nbsp; Trainee Acuity &amp; Volume Analytics</div>
+
+<div class="container">
+
+  <div id="dropZone" class="drop-zone">
+    Drag &amp; Drop Commander's Report .xlsx Files Here
+    <div class="hint">Multiple files supported. Filename must contain the date, e.g., 05-15-2026.xlsx</div>
+    <input type="file" id="fileInput" multiple accept=".xlsx,.xls" style="display:none">
+  </div>
+
+  <div class="controls">
+    <button onclick="document.getElementById('fileInput').click()">Add Files</button>
+    <button onclick="clearAll()">Clear All</button>
+    <button onclick="exportCSV()">Export CSV</button>
+    <span class="file-list" id="fileList">No files loaded.</span>
+  </div>
+
+  <!-- Collapsible File Log -->
+  <div id="debugCollapsible" class="collapsible">
+    <div class="collapsible-header" onclick="toggleDebug()">
+      <span>File Log &amp; Parsing Details</span>
+      <span class="arrow">▶</span>
+    </div>
+    <div class="collapsible-body">
+      <div id="debugPanel" class="debug-panel"><span class="debug-empty">No files parsed yet. Drop a file above to see parsing details.</span></div>
+    </div>
+  </div>
+
+  <div id="results" style="display:none;">
+
+    <div class="panel">
+      <h3>Summary Statistics</h3>
+      <div class="stat-row" id="aggStats"></div>
+    </div>
+
+    <!-- Full History trend chart -->
+    <div class="panel">
+      <h3>Trends Over Time — Full History</h3>
+      <div class="trend-controls">
+        <label><input type="checkbox" id="chkTrendlines" checked onchange="renderTrendCharts()"> Show Smoothed Trend</label>
+        <span class="chart-badge" id="fullHistoryBadge">0 Days</span>
+      </div>
+      <canvas id="fullHistoryChart"></canvas>
+      <div style="font-size:11px;color:#888;margin-top:6px;">
+        Shows every day of data loaded. <b>Smoothed trend</b> = centered 7-point Gaussian rolling average. Click a legend label to toggle that metric <b>and</b> its trend line together.
+      </div>
+      <div class="chart-insight" id="fullHistoryInsight"></div>
+    </div>
+
+    <!-- Last 30 Days trend chart -->
+    <div class="panel">
+      <h3>Trends Over Time — Last 30 Days</h3>
+      <div class="trend-controls">
+        <span class="chart-badge" id="last30Badge">0 Days</span>
+      </div>
+      <canvas id="last30Chart"></canvas>
+      <div style="font-size:11px;color:#888;margin-top:6px;">
+        Most recent 30 days of loaded data, daily detail. Trend toggle above applies here too. Click a legend label to toggle that metric <b>and</b> its trend line together.
+      </div>
+      <div class="chart-insight" id="last30Insight"></div>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <h3>Low-Acuity Trainees (Cat 4/5) by Hour of Day</h3>
+        <canvas id="hourChart"></canvas>
+        <div class="chart-insight" id="hourInsight"></div>
+      </div>
+      <div class="panel">
+        <h3>Trainee Check-ins by Day of Week</h3>
+        <canvas id="dowChart"></canvas>
+        <div class="chart-insight" id="dowInsight"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Trainee Volume by Battalion (Last 7 Days) — Stacked by Company</h3>
+      <canvas id="bnCompanyChart" style="max-height:420px;"></canvas>
+      <div class="chart-insight" id="bnInsight"></div>
+    </div>
+
+    <div class="panel">
+      <h3>Daily Report Data</h3>
+      <div style="overflow-x:auto;">
+        <table id="dailyTable">
+          <thead>
+            <tr>
+              <th>Date</th><th>Sheet</th><th>Census</th><th>Trainees</th>
+              <th>Medscreen</th><th>LWOBS</th><th>AMA</th><th>Transfer</th>
+              <th>Admitted</th><th>Ambulance</th>
+              <th>Cat 1 🔴</th><th>Cat 2/3 🟠</th><th>Cat 4/5 🟢</th><th>Unknown ⚪</th>
+            </tr>
+          </thead>
+          <tbody id="dailyTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>All Trainee Check-Ins (All Days)</h3>
+      <div style="overflow-x:auto; max-height:500px;">
+        <table id="patientTable">
+          <thead>
+            <tr>
+              <th>Date</th><th>Check-in Time</th><th>Name</th>
+              <th>Company</th><th>Battalion</th><th>Acuity</th><th>Fill (hex)</th>
+            </tr>
+          </thead>
+          <tbody id="patientTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="emptyMsg" class="panel empty-state">
+    No data loaded. Drop one or more Commander's Report .xlsx files above to begin.
+  </div>
+
+</div>
+
+<div class="footer">
+  GLWACH Emergency Department — Built for internal command analytics. Single-page client-side app; no data leaves your browser.
+</div>
+
+<script>
+/* ==========================================================
+   GLWACH ER Commander's Report Tracker  –  v22
+   - CHANGE 1: Battalion chart top-3 narrative + enhanced tooltip
+   ========================================================== */
+
+let allData     = [];
+let allPatients = [];
+let charts      = {};
+let debugLines  = [];
+
+/* ---- Debug helpers ---- */
+function dbg(msg, type) {
+  const cls = type || 'info';
+  debugLines.push(`<div class="${cls}">${msg}</div>`);
+  const el = document.getElementById('debugPanel');
+  el.innerHTML = debugLines.join('');
+  el.scrollTop = el.scrollHeight;
+}
+function escapeHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function toggleDebug() {
+  document.getElementById('debugCollapsible').classList.toggle('open');
+}
+function arr(nl) { return nl ? Array.from(nl) : []; }
+
+/* ---- Drag / drop ---- */
+const dz = document.getElementById('dropZone');
+const fi = document.getElementById('fileInput');
+dz.addEventListener('click',     () => fi.click());
+dz.addEventListener('dragover',  e  => { e.preventDefault(); dz.classList.add('dragover'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+dz.addEventListener('drop',      e  => { e.preventDefault(); dz.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
+fi.addEventListener('change',    e  => handleFiles(e.target.files));
+
+/* ---- Utility ---- */
+function parseDateFromFilename(name) {
+  const m = name.match(/(\d{1,2})[-_](\d{1,2})[-_](\d{4})/);
+  if (!m) return null;
+  return new Date(parseInt(m[3],10), parseInt(m[1],10)-1, parseInt(m[2],10));
+}
+function fmtDate(d) {
+  if (!d) return 'unknown';
+  return (d.getMonth()+1).toString().padStart(2,'0') + '/' +
+         d.getDate().toString().padStart(2,'0') + '/' + d.getFullYear();
+}
+function fmtShortDate(d) {
+  if (!d) return '';
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return months[d.getMonth()] + ' ' + d.getDate();
+}
+function colLetterToIndex(letters) {
+  let n = 0;
+  for (let i = 0; i < letters.length; i++) n = n*26 + (letters.charCodeAt(i)-64);
+  return n - 1;
+}
+function parseAddr(addr) {
+  const m = addr.match(/^([A-Z]+)(\d+)$/);
+  if (!m) return null;
+  return { col: colLetterToIndex(m[1]), row: parseInt(m[2],10)-1, addr };
+}
+
+const TIME_REGEX = /^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM|am|pm)?$/;
+function parseTime(s) {
+  if (s === null || s === undefined) return null;
+  if (typeof s === 'number') {
+    if (s < 0 || s >= 1) return null;
+    const totalSec = Math.round(s * 86400);
+    return { hour: Math.floor(totalSec/3600) % 24, minute: Math.floor((totalSec%3600)/60) };
+  }
+  const str = String(s).trim();
+  const m = str.match(TIME_REGEX);
+  if (!m) return null;
+  let h = parseInt(m[1],10);
+  const min = parseInt(m[2],10);
+  const ap = m[3] ? m[3].toUpperCase() : null;
+  if (ap === 'PM' && h < 12) h += 12;
+  if (ap === 'AM' && h === 12) h = 0;
+  if (h > 23 || min > 59) return null;
+  return { hour: h, minute: min };
+}
+function timeToStr(t) {
+  if (!t) return '';
+  const ap = t.hour >= 12 ? 'PM' : 'AM';
+  let h12 = t.hour % 12; if (h12 === 0) h12 = 12;
+  return h12 + ':' + t.minute.toString().padStart(2,'0') + ' ' + ap;
+}
+
+const UNIT_REGEX = /^([A-Za-z])[\/\-]?(\d{2,4}|FTU|TU|RHU)$/i;
+function parseUnit(text) {
+  if (!text) return null;
+  const m = String(text).trim().match(UNIT_REGEX);
+  if (!m) return null;
+  return { company: m[1].toUpperCase(), battalion: m[2].toUpperCase() };
+}
+const NAME_REGEX = /^[A-Za-z][A-Za-z'\-\.\s]*,\s*[A-Za-z]/;
+function looksLikeName(s) {
+  if (!s) return false;
+  const str = String(s).trim();
+  const ci = str.indexOf(',');
+  if (ci < 2 || ci > 35) return false;
+  return NAME_REGEX.test(str);
+}
+
+/* ---- Theme / color helpers ---- */
+const DEFAULT_THEME_COLORS = ['FFFFFF','000000','E7E6E6','44546A','4472C4','ED7D31','A5A5A5','FFC000','5B9BD5','70AD47'];
+const INDEXED_COLORS = {
+  0:'000000',1:'FFFFFF',2:'FF0000',3:'00FF00',4:'0000FF',5:'FFFF00',6:'FF00FF',7:'00FFFF',
+  8:'000000',9:'FFFFFF',10:'FF0000',11:'00FF00',12:'0000FF',13:'FFFF00',14:'FF00FF',15:'00FFFF',
+  16:'800000',17:'008000',18:'000080',19:'808000',20:'800080',21:'008080',22:'C0C0C0',23:'808080',
+  24:'9999FF',25:'993366',26:'FFFFCC',27:'CCFFFF',28:'660066',29:'FF8080',30:'0066CC',31:'CCCCFF',
+  32:'000080',33:'FF00FF',34:'FFFF00',35:'00FFFF',36:'800080',37:'800000',38:'008080',39:'0000FF',
+  40:'00CCFF',41:'CCFFFF',42:'CCFFCC',43:'FFFF99',44:'99CCFF',45:'FF99CC',46:'CC99FF',47:'FFCC99',
+  48:'3366FF',49:'33CCCC',50:'99CC00',51:'FFCC00',52:'FF9900',53:'FF6600',54:'666699',55:'969696',
+  56:'003366',57:'339966',58:'003300',59:'333300',60:'993300',61:'993366',62:'333399',63:'333333',
+  64:'000000',65:'FFFFFF'
+};
+function rgbToHls(r,g,b) {
+  r/=255; g/=255; b/=255;
+  const max=Math.max(r,g,b), min=Math.min(r,g,b), l=(max+min)/2;
+  let h=0,s=0;
+  if (max!==min) {
+    const d=max-min;
+    s=l>0.5?d/(2-max-min):d/(max+min);
+    switch(max){case r:h=((g-b)/d+(g<b?6:0));break;case g:h=((b-r)/d+2);break;case b:h=((r-g)/d+4);break;}
+    h/=6;
+  }
+  return {h,l,s};
+}
+function hlsToRgb(h,l,s) {
+  let r,g,b;
+  if(s===0){r=g=b=l;}
+  else{
+    const q=l<0.5?l*(1+s):l+s-l*s, p=2*l-q;
+    const hue2rgb=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;};
+    r=hue2rgb(p,q,h+1/3);g=hue2rgb(p,q,h);b=hue2rgb(p,q,h-1/3);
+  }
+  return [Math.round(r*255),Math.round(g*255),Math.round(b*255)];
+}
+function applyTint(hex,tint) {
+  if(!hex||!tint)return hex;
+  const r=parseInt(hex.substr(0,2),16),g=parseInt(hex.substr(2,2),16),b=parseInt(hex.substr(4,2),16);
+  const hls=rgbToHls(r,g,b);
+  let l=hls.l;
+  if(tint<0)l=l*(1+tint);else l=l*(1-tint)+tint;
+  l=Math.max(0,Math.min(1,l));
+  const [nr,ng,nb]=hlsToRgb(hls.h,l,hls.s);
+  const h=n=>n.toString(16).padStart(2,'0').toUpperCase();
+  return h(nr)+h(ng)+h(nb);
+}
+function parseXml(text){ return new DOMParser().parseFromString(text,'application/xml'); }
+
+/* ---- XLSX reader (JSZip + raw XML) ---- */
+async function readXlsx(file) {
+  const zip = await JSZip.loadAsync(file);
+  async function loadXml(path) {
+    const f = zip.file(path);
+    if (!f) return null;
+    return parseXml(await f.async('string'));
+  }
+
+  const wbXml  = await loadXml('xl/workbook.xml');
+  const wbRels = await loadXml('xl/_rels/workbook.xml.rels');
+  if (!wbXml||!wbRels) throw new Error('xl/workbook.xml or its rels missing');
+
+  const relMap = {};
+  arr(wbRels.getElementsByTagName('Relationship')).forEach(r => {
+    relMap[r.getAttribute('Id')] = r.getAttribute('Target');
+  });
+
+  const sheets = arr(wbXml.getElementsByTagName('sheet')).map(s => {
+    const name = s.getAttribute('name');
+    const rId  = s.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id') || s.getAttribute('r:id');
+    let target = relMap[rId] || '';
+    if (target && !target.startsWith('xl/') && !target.startsWith('/')) target = 'xl/'+target;
+    if (target.startsWith('/')) target = target.substring(1);
+    return { name, target, rId };
+  });
+  dbg('  sheets: '+sheets.map(s=>`"${escapeHtml(s.name)}"→${escapeHtml(s.target)||'(none)'}`).join(', '),'info');
+
+  // Shared strings
+  const sstXml = await loadXml('xl/sharedStrings.xml');
+  const sharedStrings = [];
+  if (sstXml) {
+    arr(sstXml.getElementsByTagName('si')).forEach(si => {
+      let text='';
+      arr(si.getElementsByTagName('t')).forEach(t=>{ text+=t.textContent||''; });
+      sharedStrings.push(text);
+    });
+  }
+
+  // Theme colors
+  let themeColors = DEFAULT_THEME_COLORS.slice();
+  const themeXml = await loadXml('xl/theme/theme1.xml');
+  if (themeXml) {
+    const scheme = themeXml.getElementsByTagName('a:clrScheme')[0]||themeXml.getElementsByTagName('clrScheme')[0];
+    if (scheme) {
+      const named={};
+      arr(scheme.children).forEach(c=>{
+        const tag=c.tagName.replace(/^a:/,'');
+        const srgb=c.getElementsByTagName('a:srgbClr')[0]||c.getElementsByTagName('srgbClr')[0];
+        const sys =c.getElementsByTagName('a:sysClr')[0] ||c.getElementsByTagName('sysClr')[0];
+        let val=null;
+        if(srgb)val=srgb.getAttribute('val');
+        else if(sys)val=sys.getAttribute('lastClr')||sys.getAttribute('val');
+        if(val)named[tag]=val.toUpperCase();
+      });
+      const order=['lt1','dk1','lt2','dk2','accent1','accent2','accent3','accent4','accent5','accent6'];
+      themeColors=order.map((n,i)=>named[n]||DEFAULT_THEME_COLORS[i]);
+    }
+  }
+
+  function resolveColor(colorEl) {
+    if(!colorEl)return null;
+    const rgb=colorEl.getAttribute('rgb');
+    const theme=colorEl.getAttribute('theme');
+    const indexed=colorEl.getAttribute('indexed');
+    const tintStr=colorEl.getAttribute('tint');
+    const tint=tintStr?parseFloat(tintStr):0;
+    let hex=null;
+    if(rgb){ hex=rgb.toUpperCase(); if(hex.length===8)hex=hex.substring(2); }
+    else if(theme!==null&&theme!==''){ const idx=parseInt(theme,10); hex=themeColors[idx]||DEFAULT_THEME_COLORS[idx]; }
+    else if(indexed!==null&&indexed!==''){ hex=INDEXED_COLORS[parseInt(indexed,10)]; }
+    if(!hex)return null;
+    if(tint)hex=applyTint(hex,tint);
+    return hex;
+  }
+
+  // Styles
+  const stylesXml = await loadXml('xl/styles.xml');
+  const fills=[], cellXfs=[];
+  if(stylesXml){
+    const fillsEl=stylesXml.getElementsByTagName('fills')[0];
+    if(fillsEl){
+      arr(fillsEl.getElementsByTagName('fill')).forEach(f=>{
+        const pat=f.getElementsByTagName('patternFill')[0];
+        const rec={hex:null};
+        if(pat){
+          const ptype=pat.getAttribute('patternType')||pat.getAttribute('type');
+          if(ptype&&ptype!=='none'){
+            const fg=pat.getElementsByTagName('fgColor')[0];
+            const bg=pat.getElementsByTagName('bgColor')[0];
+            rec.hex=resolveColor(fg)||resolveColor(bg);
+          }
+        }
+        fills.push(rec);
+      });
+    }
+    const cellXfsEl=stylesXml.getElementsByTagName('cellXfs')[0];
+    if(cellXfsEl){
+      arr(cellXfsEl.getElementsByTagName('xf')).forEach(xf=>{
+        const fillId=parseInt(xf.getAttribute('fillId')||'0',10);
+        cellXfs.push({fillId});
+      });
+    }
+    dbg('  styles: fills='+fills.length+', cellXfs='+cellXfs.length,'info');
+  }
+
+  // Parse sheets
+  const sheetsParsed=[];
+  for(const sh of sheets){
+    if(!sh.target){dbg('  ✗ no target for "'+escapeHtml(sh.name)+'"','warn');continue;}
+    const xml=await loadXml(sh.target);
+    if(!xml){dbg('  ✗ could not load: '+escapeHtml(sh.target),'warn');continue;}
+    const grid={};
+    let maxRow=0,maxCol=0;
+    const tokens=[];
+    arr(xml.getElementsByTagName('row')).forEach(rowEl=>{
+      arr(rowEl.getElementsByTagName('c')).forEach(cEl=>{
+        const addr=cEl.getAttribute('r');
+        const pa=parseAddr(addr);
+        if(!pa)return;
+        const t=cEl.getAttribute('t')||'n';
+        const s=cEl.getAttribute('s');
+        const styleIdx=s!==null&&s!==''?parseInt(s,10):null;
+        let value=null,str='';
+        if(t==='s'){
+          const vEl=cEl.getElementsByTagName('v')[0];
+          if(vEl){const idx=parseInt(vEl.textContent,10);value=sharedStrings[idx]||'';str=String(value).trim();}
+        } else if(t==='inlineStr'){
+          const isEl=cEl.getElementsByTagName('is')[0];
+          if(isEl){let tx='';arr(isEl.getElementsByTagName('t')).forEach(tt=>tx+=tt.textContent||'');value=tx;str=tx.trim();}
+        } else if(t==='b'){
+          const vEl=cEl.getElementsByTagName('v')[0];value=vEl&&vEl.textContent==='1';str=value?'TRUE':'FALSE';
+        } else if(t==='str'||t==='e'){
+          const vEl=cEl.getElementsByTagName('v')[0];value=vEl?vEl.textContent:'';str=String(value).trim();
+        } else {
+          const vEl=cEl.getElementsByTagName('v')[0];
+          if(vEl){value=parseFloat(vEl.textContent);str=vEl.textContent.trim();}
+        }
+        let fillHex=null;
+        if(styleIdx!==null&&cellXfs[styleIdx]){
+          const xf=cellXfs[styleIdx];
+          const fill=fills[xf.fillId];
+          if(fill&&fill.hex)fillHex=fill.hex;
+        }
+        if(fillHex){
+          const rr=parseInt(fillHex.substr(0,2),16),gg=parseInt(fillHex.substr(2,2),16),bb=parseInt(fillHex.substr(4,2),16);
+          if((rr>=245&&gg>=245&&bb>=245)||(rr<=10&&gg<=10&&bb<=10))fillHex=null;
+        }
+        const info={value,str,fillHex,addr,row:pa.row,col:pa.col,styleIdx};
+        if(!grid[pa.row])grid[pa.row]={};
+        grid[pa.row][pa.col]=info;
+        if(pa.row>maxRow)maxRow=pa.row;
+        if(pa.col>maxCol)maxCol=pa.col;
+        if(str!==''||fillHex)tokens.push(info);
+      });
+    });
+    sheetsParsed.push({name:sh.name,grid,tokens,maxRow,maxCol});
+  }
+  return {sheets:sheetsParsed};
+}
+
+/* ---- Acuity from fill hex ---- */
+function classifyHex(hex) {
+  if(!hex)return null;
+  const r=parseInt(hex.substr(0,2),16)/255;
+  const g=parseInt(hex.substr(2,2),16)/255;
+  const b=parseInt(hex.substr(4,2),16)/255;
+  const max=Math.max(r,g,b),min=Math.min(r,g,b),l=(max+min)/2;
+  if(max===min)return null;
+  const d=max-min;
+  const s=l>0.5?d/(2-max-min):d/(max+min);
+  if(s<0.10)return null;
+  let h;
+  switch(max){case r:h=((g-b)/d+(g<b?6:0));break;case g:h=((b-r)/d+2);break;case b:h=((r-g)/d+4);break;}
+  h*=60;
+  if((h>=340&&h<=360)||(h>=0&&h<20))  return 'red';
+  if(h>=20&&h<65)                      return 'orange';
+  if(h>=65&&h<180)                     return 'green';
+  return null;
+}
+
+/* ---- File handling ---- */
+async function handleFiles(files) {
+  const arrf=Array.from(files).filter(f=>/\.xlsx?$/i.test(f.name));
+  if(!arrf.length){alert('Please drop .xlsx files only.');return;}
+  if(!debugLines.length)document.getElementById('debugPanel').innerHTML='';
+  dbg('Loading '+arrf.length+' file(s)…','info');
+  for(const f of arrf){
+    try{
+      dbg('════════════════════════════════════════════','info');
+      dbg('Opening: '+escapeHtml(f.name),'ok');
+      const wb=await readXlsx(f);
+      const parsed=parseWorkbook(wb,f.name);
+      if(parsed){
+        allData    =allData.filter(d=>fmtDate(d.date)!==fmtDate(parsed.date));
+        allPatients=allPatients.filter(p=>fmtDate(p.date)!==fmtDate(parsed.date));
+        allData.push(parsed);
+        parsed.patients.forEach(p=>allPatients.push({...p,date:parsed.date}));
+        dbg('PARSED '+fmtDate(parsed.date)+
+            ' [sheet='+escapeHtml(parsed.sheetUsed)+']'+
+            '  census='+parsed.census+
+            ' trainees='+parsed.trainees+
+            ' lwobs='+parsed.lwobs+
+            ' | R='+parsed.cat1+' O='+parsed.cat23+' G='+parsed.cat45+' ?='+parsed.unknown,'ok');
+      }
+    }catch(err){
+      dbg('ERROR parsing '+escapeHtml(f.name)+': '+escapeHtml(err.message),'err');
+      console.error(err);
+    }
+  }
+  render();
+}
+
+/* ---- Sheet scoring ---- */
+function scoreSheet(tokens){
+  if(!tokens.length)return 0;
+  let score=tokens.length,hasCheckIn=false,hasCensus=false,timeCount=0,nameCount=0,fillCount=0;
+  for(const t of tokens){
+    if(/check.?in\s*time/i.test(t.str))hasCheckIn=true;
+    if(/^census$/i.test(t.str))hasCensus=true;
+    if(parseTime(t.str)||(typeof t.value==='number'&&t.value>0&&t.value<1))timeCount++;
+    if(looksLikeName(t.str))nameCount++;
+    if(t.fillHex)fillCount++;
+  }
+  if(hasCheckIn)score+=1000;
+  if(hasCensus) score+=500;
+  score+=timeCount*20+nameCount*30+fillCount*5;
+  return score;
+}
+
+function parseWorkbook(wb,filename){
+  const date=parseDateFromFilename(filename);
+  if(!date)dbg('  ⚠ No date in filename: '+escapeHtml(filename),'warn');
+  let best=null;
+  wb.sheets.forEach(sh=>{
+    const score=scoreSheet(sh.tokens);
+    dbg('  sheet "'+escapeHtml(sh.name)+'" → '+sh.tokens.length+' cells, score='+score,'info');
+    if(!best||score>best.score)best={...sh,score};
+  });
+  if(!best||!best.tokens.length){dbg('  ✗ No usable sheet found','err');return null;}
+  dbg('  → using sheet: "'+escapeHtml(best.name)+'"','ok');
+  return parseSheet(best,date,filename);
+}
+
+function extractMetric(grid,labelRegex,maxRow,maxCol){
+  for(let r=0;r<=maxRow;r++){
+    if(!grid[r])continue;
+    for(let c=0;c<=maxCol;c++){
+      const cell=grid[r][c];
+      if(!cell||!labelRegex.test(cell.str))continue;
+      for(let dr=1;dr<=2;dr++){
+        const below=grid[r+dr]&&grid[r+dr][c];
+        if(below){
+          const v=below.value;
+          if(typeof v==='number')return v;
+          if(typeof v==='string'&&/^-?\d+(\.\d+)?$/.test(v.trim()))return parseFloat(v);
+        }
+      }
+    }
+  }
+  return 0;
+}
+
+function parseSheet(best,date,filename){
+  const {grid,maxRow,maxCol,name:sheetName}=best;
+  const metrics={
+    census:    extractMetric(grid,/^census$/i,maxRow,maxCol),
+    medscreen: extractMetric(grid,/med\s*screen/i,maxRow,maxCol),
+    lwobs:     extractMetric(grid,/lwobs|lwbs|left\s*without/i,maxRow,maxCol),
+    ama:       extractMetric(grid,/^\s*ama\s*$|against\s*medical/i,maxRow,maxCol),
+    transfer:  extractMetric(grid,/^transfer$/i,maxRow,maxCol),
+    admitted:  extractMetric(grid,/^admit(ted|s|ssion)?$/i,maxRow,maxCol),
+    ambulance: extractMetric(grid,/^ambulance$|^ems$/i,maxRow,maxCol),
+  };
+
+  // Find check-in time header
+  let checkInCell=null;
+  for(let r=0;r<=maxRow&&!checkInCell;r++){
+    if(!grid[r])continue;
+    for(let c=0;c<=maxCol;c++){
+      const cell=grid[r][c];
+      if(cell&&/check.?in\s*time/i.test(cell.str)){checkInCell=cell;break;}
+    }
+  }
+  if(!checkInCell){
+    dbg('  ⚠ No "check-in time" header found','warn');
+    return{filename,date,sheetUsed:sheetName,...metrics,trainees:0,cat1:0,cat23:0,cat45:0,unknown:0,patients:[]};
+  }
+
+  const colTime =checkInCell.col;
+  const colName =checkInCell.col+1;
+  const colUnit =checkInCell.col+2;
+  const rowStart=checkInCell.row+1;
+  dbg('  check-in header at '+checkInCell.addr+' → cols time='+colTime+' name='+colName+' unit='+colUnit+', rows≥'+(rowStart+1),'info');
+
+  const STOP_REGEX=/^(USMC|sedation|Code\s*blue|expired|glwah_emg|Rapid\s*Response|Dog\s*Bite|Needlestick|Foreign\s*Nat|high\s*rank|Civ\s*Emergency|DENTAC|Environmental|Fit\s*For|restraints|check.?in\s*tra|normal\s*tracking\s*con|command\s*interest)/i;
+
+  const patients=[];
+  let consecutiveEmpty=0;
+
+  for(let r=rowStart;r<=maxRow;r++){
+    const rowCells=grid[r]||{};
+    const timeCell=rowCells[colTime];
+    const nameCell=rowCells[colName];
+    const unitCell=rowCells[colUnit];
+
+    if((timeCell&&STOP_REGEX.test(timeCell.str))||(nameCell&&STOP_REGEX.test(nameCell.str)))break;
+
+    let timeParsed=null;
+    if(timeCell){
+      timeParsed=parseTime(timeCell.str)||
+        (typeof timeCell.value==='number'&&timeCell.value>0&&timeCell.value<1?parseTime(timeCell.value):null);
+    }
+    const hasName=nameCell&&looksLikeName(nameCell.str);
+    if(!timeParsed||!hasName){
+      consecutiveEmpty++;
+      if(consecutiveEmpty>12)break;
+      continue;
+    }
+    consecutiveEmpty=0;
+
+    let company='',battalion='';
+    if(unitCell){
+      const u=parseUnit(unitCell.str);
+      if(u){company=u.company;battalion=u.battalion;}
+    }
+    if(!company){
+      const parts=nameCell.str.split(/\s+/);
+      if(parts.length>=2){const u=parseUnit(parts[parts.length-1]);if(u){company=u.company;battalion=u.battalion;}}
+    }
+
+    let fillHex=nameCell.fillHex||(unitCell&&unitCell.fillHex)||null;
+    let acuity=classifyHex(fillHex);
+    if(!acuity)acuity='unknown';
+
+    const cleanName=nameCell.str.replace(/\s+[A-Za-z][\/\-]?\d{2,4}\s*$/,'').trim();
+    const displayTime=timeParsed?timeToStr(timeParsed):(timeCell.str||'');
+
+    patients.push({timeStr:displayTime,time:timeParsed,name:cleanName,company,battalion,acuity,fillHex:fillHex||''});
+  }
+
+  dbg('  ── Patients ──','info');
+  patients.forEach((p,idx)=>{
+    const sw=p.fillHex
+      ?`<span class="swatch" style="background:#${p.fillHex}"></span>#${p.fillHex}`
+      :'<span class="swatch" style="background:#fff"></span>(no fill)';
+    const cls=p.acuity==='unknown'?'warn':'info';
+    dbg('    P'+(idx+1).toString().padStart(2,'0')+': '+
+        escapeHtml(p.timeStr.padEnd(10))+'  '+
+        escapeHtml((p.name+' '+p.company+p.battalion).padEnd(28))+'  '+
+        sw+' → <b>'+p.acuity+'</b>',cls);
+  });
+
+  let cat1=0,cat23=0,cat45=0,unknown=0;
+  patients.forEach(p=>{
+    if(p.acuity==='red')cat1++;
+    else if(p.acuity==='orange')cat23++;
+    else if(p.acuity==='green')cat45++;
+    else unknown++;
+  });
+
+  return{filename,date,sheetUsed:sheetName,...metrics,trainees:patients.length,cat1,cat23,cat45,unknown,patients};
+}
+
+/* ==========================================================
+   INSIGHT GENERATOR
+   Plain-English narratives focused on Trainees, Cat 4/5, LWOBS.
+   ========================================================== */
+
+function firstHalfSecondHalfChange(values) {
+  const n = values.length;
+  if (n < 4) return { dir: 'stable', pct: 0 };
+  const mid = Math.floor(n / 2);
+  const fh = values.slice(0, mid);
+  const sh = values.slice(mid);
+  const fhAvg = fh.reduce((a,b)=>a+b,0) / fh.length;
+  const shAvg = sh.reduce((a,b)=>a+b,0) / sh.length;
+  if (fhAvg === 0 && shAvg === 0) return { dir: 'stable', pct: 0 };
+  if (fhAvg === 0) return { dir: 'rising', pct: 100 };
+  const pct = ((shAvg - fhAvg) / fhAvg) * 100;
+  let dir = 'stable';
+  if (pct > 10) dir = 'rising';
+  else if (pct < -10) dir = 'falling';
+  return { dir, pct: Math.abs(Math.round(pct)) };
+}
+
+function generateFullHistoryInsight(data) {
+  if (!data || data.length < 2) return '<strong>Not enough data</strong> — load at least two days to see trend analysis.';
+  const trainees = data.map(d => d.trainees||0);
+  const cat45    = data.map(d => d.cat45||0);
+  const lwobs    = data.map(d => d.lwobs||0);
+
+  const totalTrainees = trainees.reduce((a,b)=>a+b,0);
+  const totalCat45    = cat45.reduce((a,b)=>a+b,0);
+  const totalLwobs    = lwobs.reduce((a,b)=>a+b,0);
+
+  const avgT = (totalTrainees/data.length).toFixed(1);
+  const avgC = (totalCat45/data.length).toFixed(1);
+  const avgL = (totalLwobs/data.length).toFixed(1);
+
+  const tChange = firstHalfSecondHalfChange(trainees);
+  const cChange = firstHalfSecondHalfChange(cat45);
+  const lChange = firstHalfSecondHalfChange(lwobs);
+
+  const cat45Pct = totalTrainees > 0 ? Math.round((totalCat45/totalTrainees)*100) : 0;
+  const lwobsRate = totalTrainees > 0 ? ((totalLwobs/totalTrainees)*100).toFixed(1) : '0';
+
+  const tPhrase = tChange.dir === 'stable' ? 'has been stable' : `is <strong>${tChange.dir} ${tChange.pct}%</strong>`;
+  const cPhrase = cChange.dir === 'stable' ? 'stable' : `${cChange.dir} ${cChange.pct}%`;
+  const lPhrase = lChange.dir === 'stable' ? 'stable' : `${lChange.dir} ${lChange.pct}%`;
+
+  const s1 = `Across <strong>${data.length} days</strong> loaded, trainee volume averages <strong>${avgT}/day</strong> and ${tPhrase} comparing the second half to the first; <strong>${cat45Pct}%</strong> of all trainee visits are Cat 4/5 (low-acuity).`;
+
+  let lwobsFlag = '';
+  if (parseFloat(lwobsRate) > 10) lwobsFlag = ' — <strong>this LWOBS rate is elevated and warrants throughput review.</strong>';
+  else if (parseFloat(lwobsRate) > 5) lwobsFlag = ' — watch for upward movement.';
+
+  const s2 = `Cat 4/5 averages <strong>${avgC}/day</strong> (${cPhrase}); LWOBS averages <strong>${avgL}/day</strong> (${lPhrase}), or <strong>${lwobsRate}%</strong> of trainee visits${lwobsFlag}`;
+  return s1 + ' ' + s2;
+}
+
+function generateLast30Insight(data) {
+  if (!data || data.length < 2) return '<strong>Not enough data</strong> — load at least two days to see trend analysis.';
+  const trainees = data.map(d => d.trainees||0);
+  const cat45    = data.map(d => d.cat45||0);
+  const lwobs    = data.map(d => d.lwobs||0);
+
+  const totalTrainees = trainees.reduce((a,b)=>a+b,0);
+  const totalCat45    = cat45.reduce((a,b)=>a+b,0);
+  const totalLwobs    = lwobs.reduce((a,b)=>a+b,0);
+
+  const avgT = (totalTrainees/data.length).toFixed(1);
+  const avgC = (totalCat45/data.length).toFixed(1);
+  const avgL = (totalLwobs/data.length).toFixed(1);
+
+  const tChange = firstHalfSecondHalfChange(trainees);
+  const cChange = firstHalfSecondHalfChange(cat45);
+  const lChange = firstHalfSecondHalfChange(lwobs);
+
+  const cat45Pct = totalTrainees > 0 ? Math.round((totalCat45/totalTrainees)*100) : 0;
+  const lwobsRate = totalTrainees > 0 ? ((totalLwobs/totalTrainees)*100).toFixed(1) : '0';
+
+  const tPhrase = tChange.dir === 'stable' ? 'holding steady' : `<strong>${tChange.dir} ${tChange.pct}%</strong> vs the first half`;
+  const cPhrase = cChange.dir === 'stable' ? 'flat' : `${cChange.dir} ${cChange.pct}%`;
+  const lPhrase = lChange.dir === 'stable' ? 'flat' : `${lChange.dir} ${lChange.pct}%`;
+
+  const s1 = `Over the last <strong>${data.length} days</strong>, trainee volume averages <strong>${avgT}/day</strong> and is ${tPhrase}; Cat 4/5 represents <strong>${cat45Pct}%</strong> of trainee visits (avg ${avgC}/day, ${cPhrase}).`;
+
+  let lwobsFlag = '';
+  if (parseFloat(lwobsRate) > 10) lwobsFlag = ' — <strong>elevated LWOBS rate warrants command attention.</strong>';
+  else if (parseFloat(lwobsRate) > 5) lwobsFlag = ' — watch for further increase.';
+  else lwobsFlag = ' — within acceptable range.';
+
+  const s2 = `LWOBS averages <strong>${avgL}/day</strong> (${lPhrase}), running at <strong>${lwobsRate}%</strong> of trainee visits${lwobsFlag}`;
+  return s1 + ' ' + s2;
+}
+
+/* ----- HOUR insight — operationally precise ----- */
+function generateHourInsight(patients) {
+  if (!patients || !patients.length) return 'No patient data loaded.';
+
+  // Filter to Cat 4/5 only (the chart's focus)
+  const cat45 = patients.filter(p => p.acuity === 'green' && p.time);
+  const total = cat45.length;
+
+  if (total === 0) return 'No Cat 4/5 (low-acuity) trainee visits in the loaded data.';
+
+  // Hourly counts
+  const counts = new Array(24).fill(0);
+  cat45.forEach(p => { counts[p.time.hour]++; });
+
+  // Peak hour
+  const peakHr = counts.indexOf(Math.max(...counts));
+  const peakCount = counts[peakHr];
+  const peakPct = Math.round((peakCount/total)*100);
+  const peakHrLabel = String(peakHr).padStart(2,'0') + '00';
+
+  // Densest 4-hour sliding window
+  let bestStart = 0, bestSum = 0;
+  for (let i = 0; i <= 24-4; i++) {
+    const sum = counts[i]+counts[i+1]+counts[i+2]+counts[i+3];
+    if (sum > bestSum) { bestSum = sum; bestStart = i; }
+  }
+  const blockStart = String(bestStart).padStart(2,'0') + '00';
+  const blockEnd   = String(bestStart+4).padStart(2,'0') + '00';
+  const blockPct   = Math.round((bestSum/total)*100);
+
+  // Time-of-day blocks: overnight (0-5), morning (6-11), afternoon (12-17), evening (18-23)
+  const overnight = counts.slice(0,6).reduce((a,b)=>a+b,0);
+  const morning   = counts.slice(6,12).reduce((a,b)=>a+b,0);
+  const afternoon = counts.slice(12,18).reduce((a,b)=>a+b,0);
+  const evening   = counts.slice(18,24).reduce((a,b)=>a+b,0);
+
+  const blocks = [
+    { name: 'overnight (0000–0559)',  count: overnight },
+    { name: 'morning (0600–1159)',    count: morning },
+    { name: 'afternoon (1200–1759)',  count: afternoon },
+    { name: 'evening (1800–2359)',    count: evening },
+  ].sort((a,b) => b.count - a.count);
+
+  const topBlock = blocks[0];
+  const topBlockPct = Math.round((topBlock.count/total)*100);
+
+  const s1 = `Across <strong>${total}</strong> Cat 4/5 trainee visits, the peak hour is <strong>${peakHrLabel}</strong> with <strong>${peakCount} visits (${peakPct}%)</strong>; the busiest 4-hour block is <strong>${blockStart}–${blockEnd}</strong>, capturing <strong>${blockPct}%</strong> of low-acuity volume.`;
+
+  let staffingNote = '';
+  if (topBlockPct >= 35) {
+    staffingNote = ` — <strong>this ${topBlockPct}% concentration in the ${topBlock.name.split(' ')[0]} block</strong> suggests aligning low-acuity staffing to this window.`;
+  } else {
+    staffingNote = ` — volume is reasonably distributed across the day, no single block dominates.`;
+  }
+
+  const s2 = `By time-of-day block: <strong>${topBlock.name}</strong> leads at <strong>${topBlockPct}%</strong> (${topBlock.count} visits), followed by ${blocks[1].name.split(' ')[0]} ${Math.round((blocks[1].count/total)*100)}%, ${blocks[2].name.split(' ')[0]} ${Math.round((blocks[2].count/total)*100)}%, and ${blocks[3].name.split(' ')[0]} ${Math.round((blocks[3].count/total)*100)}%${staffingNote}`;
+
+  return s1 + ' ' + s2;
+}
+
+/* ----- DAY OF WEEK insight — operationally precise ----- */
+function generateDowInsight(patients) {
+  if (!patients || !patients.length) return 'No patient data loaded.';
+
+  const dated = patients.filter(p => p.date);
+  const total = dated.length;
+  if (total === 0) return 'No dated trainee visits in loaded data.';
+
+  const names = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const counts = new Array(7).fill(0);
+  dated.forEach(p => { counts[p.date.getDay()]++; });
+
+  // Count unique date occurrences per day-of-week (for per-occurrence average)
+  const occurrenceDates = [new Set(),new Set(),new Set(),new Set(),new Set(),new Set(),new Set()];
+  dated.forEach(p => {
+    occurrenceDates[p.date.getDay()].add(p.date.getTime());
+  });
+  const occurrences = occurrenceDates.map(s => s.size);
+
+  // Total unique dates / 7 for "weeks of data" estimate
+  const allDates = new Set();
+  dated.forEach(p => allDates.add(p.date.getTime()));
+  const totalDates = allDates.size;
+  const weeksApprox = (totalDates / 7).toFixed(1);
+
+  // Busiest & lightest (lightest only among days that actually have occurrences)
+  let maxIdx = 0, minIdx = -1;
+  for (let i = 0; i < 7; i++) {
+    if (counts[i] > counts[maxIdx]) maxIdx = i;
+    if (occurrences[i] > 0) {
+      if (minIdx === -1 || counts[i] < counts[minIdx]) minIdx = i;
+    }
+  }
+  if (minIdx === -1) minIdx = maxIdx;
+
+  const maxCount = counts[maxIdx];
+  const minCount = counts[minIdx];
+  const maxPct = Math.round((maxCount/total)*100);
+  const minPct = Math.round((minCount/total)*100);
+  const maxPerOcc = occurrences[maxIdx] > 0 ? (maxCount/occurrences[maxIdx]).toFixed(1) : '0';
+  const minPerOcc = occurrences[minIdx] > 0 ? (minCount/occurrences[minIdx]).toFixed(1) : '0';
+
+  const ratio = minCount > 0 ? (maxCount/minCount).toFixed(1) : '∞';
+
+  // Weekday vs weekend daily averages
+  let weekdayCount = 0, weekdayOcc = 0, weekendCount = 0, weekendOcc = 0;
+  for (let i = 0; i < 7; i++) {
+    if (i === 0 || i === 6) { weekendCount += counts[i]; weekendOcc += occurrences[i]; }
+    else                    { weekdayCount += counts[i]; weekdayOcc += occurrences[i]; }
+  }
+  const weekdayAvg = weekdayOcc > 0 ? (weekdayCount/weekdayOcc).toFixed(1) : '0';
+  const weekendAvg = weekendOcc > 0 ? (weekendCount/weekendOcc).toFixed(1) : '0';
+  const weekdayPct = Math.round((weekdayCount/total)*100);
+  const weekendPct = Math.round((weekendCount/total)*100);
+
+  const s1 = `From <strong>${total} trainee visits</strong> across ~<strong>${weeksApprox} weeks</strong> of data, <strong>${names[maxIdx]}</strong> is the busiest day with <strong>${maxCount} visits (${maxPct}%, avg ${maxPerOcc}/${names[maxIdx]})</strong>; <strong>${names[minIdx]}</strong> is the lightest with <strong>${minCount} visits (${minPct}%, avg ${minPerOcc}/${names[minIdx]})</strong> — a <strong>${ratio}x</strong> spread.`;
+
+  let weekendNote = '';
+  if (parseFloat(weekendAvg) > parseFloat(weekdayAvg)) {
+    weekendNote = ` — <strong>weekend daily average (${weekendAvg}) exceeds weekday daily average (${weekdayAvg})</strong>, which may indicate field exercises or weekday access barriers worth investigating.`;
+  } else {
+    weekendNote = ` — weekday daily average (${weekdayAvg}) exceeds weekend (${weekendAvg}), consistent with a standard training-week sick-call pattern.`;
+  }
+
+  const s2 = `Weekday total: <strong>${weekdayCount} visits (${weekdayPct}%)</strong>; weekend total: <strong>${weekendCount} visits (${weekendPct}%)</strong>${weekendNote}`;
+
+  return s1 + ' ' + s2;
+}
+
+/* ----- BATTALION insight — top 3 utilizers + concentration flag ----- */
+function generateBnInsight(patients7) {
+  if (!patients7.length) return 'No trainee visits in the last 7 days.';
+
+  const bnCounts = {};
+  patients7.forEach(p => {
+    if (!p.battalion) return;
+    bnCounts[p.battalion] = (bnCounts[p.battalion] || 0) + 1;
+  });
+  const bns = Object.entries(bnCounts).sort((a,b)=>b[1]-a[1]);
+  if (!bns.length) return 'No battalion data available for the last 7 days.';
+
+  const total = patients7.length;
+  const numBns = bns.length;
+
+  // Top 3 (or fewer if not enough battalions)
+  const topN = Math.min(3, numBns);
+  const top = bns.slice(0, topN);
+  const topNames = top.map(([bn,c]) => `<strong>BN ${bn}</strong> (${c} visits, ${Math.round((c/total)*100)}%)`).join(', ');
+  const topSum = top.reduce((s,[,c])=>s+c,0);
+  const topPct = Math.round((topSum/total)*100);
+
+  const remaining = bns.slice(topN);
+  const remainingSum = remaining.reduce((s,[,c])=>s+c,0);
+  const remainingPct = Math.round((remainingSum/total)*100);
+
+  // Herfindahl-Hirschman concentration index
+  const hhi = bns.reduce((sum, [,c]) => sum + Math.pow(c/total, 2), 0);
+
+  // Sentence 1 — top 3 callout
+  let s1;
+  if (numBns >= 3) {
+    s1 = `Over the last 7 days, <strong>${numBns} battalions</strong> sent trainees to the ER for <strong>${total} total visits</strong>. Top 3 utilizers: ${topNames} — these three account for <strong>${topPct}%</strong> of all trainee ER visits${remaining.length > 0 ? `, leaving <strong>${remainingPct}%</strong> distributed across the remaining ${remaining.length} battalion${remaining.length>1?'s':''}` : ''}.`;
+  } else {
+    s1 = `Over the last 7 days, <strong>${numBns} battalion${numBns>1?'s':''}</strong> sent trainees to the ER for <strong>${total} total visits</strong>. Utilizers: ${topNames}.`;
+  }
+
+  // Sentence 2 — concentration flag
+  let s2;
+  if (hhi > 0.25) {
+    s2 = `Volume is <strong>highly concentrated</strong> at the top — this warrants coordination with the leading battalion's chain of command to identify training, environmental, or unit-specific drivers.`;
+  } else if (hhi > 0.15) {
+    s2 = `Volume is <strong>moderately concentrated</strong> — worth monitoring whether the top utilizers continue to drive disproportionate share over the coming weeks.`;
+  } else {
+    s2 = `Volume is <strong>relatively evenly distributed</strong> across battalions — no single unit is driving the overall trainee ER load.`;
+  }
+
+  return s1 + ' ' + s2;
+}
+
+/* ==========================================================
+   RENDER
+   ========================================================== */
+function render(){
+  const fl=document.getElementById('fileList');
+  fl.textContent=allData.length
+    ?allData.length+' file(s): '+allData.slice().sort((a,b)=>(a.date||0)-(b.date||0)).map(d=>fmtDate(d.date)).join(', ')
+    :'No files loaded.';
+  if(!allData.length){
+    document.getElementById('results').style.display='none';
+    document.getElementById('emptyMsg').style.display='block';
+    return;
+  }
+  document.getElementById('results').style.display='block';
+  document.getElementById('emptyMsg').style.display='none';
+  allData.sort((a,b)=>(a.date||0)-(b.date||0));
+  renderAggStats();
+  renderTrendCharts();
+  renderHourChart();
+  renderDowChart();
+  renderBnCompanyChart();
+  renderDailyTable();
+  renderPatientTable();
+}
+
+/* ---- Average helpers ---- */
+function avgOver(data, key) {
+  if (!data.length) return '0';
+  const sum = data.reduce((a,d) => a + (d[key]||0), 0);
+  return (sum / data.length).toFixed(1);
+}
+
+function renderAggStats(){
+  const last7 = allData.slice(-7);
+  const stats=[
+    ['Days Loaded',                allData.length],
+    ['Avg Census / Day',           avgOver(allData, 'census')],
+    ['Avg Trainees / Day',         avgOver(allData, 'trainees')],
+    ['Avg LWOBS / Day',            avgOver(allData, 'lwobs')],
+    ['Avg Cat 4/5 / Day',          avgOver(allData, 'cat45')],
+    ['Avg Trainees (Last 7 Days)', avgOver(last7,   'trainees')],
+    ['Avg Cat 4/5 (Last 7 Days)',  avgOver(last7,   'cat45')],
+    ['Avg LWOBS (Last 7 Days)',    avgOver(last7,   'lwobs')],
+  ];
+  document.getElementById('aggStats').innerHTML=stats.map(s=>
+    `<div class="stat"><div class="label">${s[0]}</div><div class="value">${s[1]}</div></div>`
+  ).join('');
+}
+
+function destroyChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+
+/* ==========================================================
+   TREND CHARTS
+   ========================================================== */
+
+const TREND_METRICS=[
+  {key:'census',   label:'Census',   color:'#000000'},
+  {key:'trainees', label:'Trainees', color:'#4b5320'},
+  {key:'cat45',    label:'Cat 4/5',  color:'#2e8b2e'},
+  {key:'cat23',    label:'Cat 2/3',  color:'#e69500'},
+  {key:'cat1',     label:'Cat 1',    color:'#c1272d'},
+  {key:'lwobs',    label:'LWOBS',    color:'#b8860b'},
+];
+
+function smoothRollingAverage(values, windowSize){
+  if(values.length < 2) return values.slice();
+  const half = Math.floor(windowSize / 2);
+  const sigma = Math.max(0.8, half / 2);
+  const out = [];
+  for(let i=0; i<values.length; i++){
+    let sumW = 0, sumWY = 0;
+    const lo = Math.max(0, i - half);
+    const hi = Math.min(values.length - 1, i + half);
+    for(let j=lo; j<=hi; j++){
+      const d = j - i;
+      const w = Math.exp(-(d*d) / (2*sigma*sigma));
+      sumW  += w;
+      sumWY += w * values[j];
+    }
+    out.push(sumW > 0 ? sumWY / sumW : values[i]);
+  }
+  return out;
+}
+
+function buildTrendDatasets(data, showTrend, windowSize){
+  const datasets=[];
+  TREND_METRICS.forEach(m=>{
+    const values=data.map(d=>d[m.key]||0);
+
+    datasets.push({
+      label:           m.label,
+      metricKey:       m.key,
+      isTrend:         false,
+      data:            values,
+      borderColor:     m.color + (showTrend ? '66' : 'cc'),
+      backgroundColor: m.color + '33',
+      tension:         0.2,
+      pointRadius:     showTrend ? 2 : 3,
+      pointHoverRadius:5,
+      borderWidth:     showTrend ? 1 : 2,
+      fill:            false,
+    });
+
+    if(showTrend && values.length >= 2){
+      const smoothed = smoothRollingAverage(values, windowSize);
+      datasets.push({
+        label:           m.label + ' (trend)',
+        metricKey:       m.key,
+        isTrend:         true,
+        data:            smoothed,
+        borderColor:     m.color,
+        backgroundColor: 'transparent',
+        borderWidth:     2.5,
+        pointRadius:     0,
+        pointHoverRadius:0,
+        fill:            false,
+        tension:         0.4,
+        order:           -1,
+      });
+    }
+  });
+  return datasets;
+}
+
+function makeLegendClickHandler() {
+  return function(e, legendItem, legend) {
+    const chart = legend.chart;
+    const clickedKey = legendItem.metricKey;
+    chart.data.datasets.forEach((ds, i) => {
+      if (ds.metricKey === clickedKey) {
+        const meta = chart.getDatasetMeta(i);
+        meta.hidden = !meta.hidden;
+      }
+    });
+    chart.update();
+  };
+}
+
+function makeGenerateLabels() {
+  return function(chart) {
+    const seen = new Set();
+    return chart.data.datasets.map((ds, i) => {
+      if (ds.isTrend) return null;
+      if (seen.has(ds.metricKey)) return null;
+      seen.add(ds.metricKey);
+      const meta = chart.getDatasetMeta(i);
+      return {
+        text:        ds.label,
+        metricKey:   ds.metricKey,
+        fillStyle:   ds.borderColor,
+        strokeStyle: ds.borderColor,
+        lineWidth:   2,
+        hidden:      meta.hidden,
+        index:       i,
+      };
+    }).filter(Boolean);
+  };
+}
+
+function buildTrendChartOptions(showTrend, xLabel) {
+  return {
+    responsive:          true,
+    maintainAspectRatio: false,
+    interaction:         { mode:'index', intersect:false },
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { generateLabels: makeGenerateLabels() },
+        onClick: makeLegendClickHandler(),
+      },
+      tooltip: {
+        callbacks: {
+          filter: (item) => !item.dataset.isTrend,
+        }
+      }
+    },
+    scales: {
+      x: {
+        title: { display:true, text: xLabel||'Date' },
+        grid:  { color:'#eee' },
+        ticks: { maxRotation:60, minRotation:0, autoSkip:true, maxTicksLimit:20 }
+      },
+      y: {
+        beginAtZero: true,
+        title: { display:true, text:'Count' },
+        grid:  { color:'#eee' }
+      }
+    }
+  };
+}
+
+function renderTrendCharts(){
+  renderFullHistoryChart();
+  renderLast30Chart();
+}
+
+function renderFullHistoryChart(){
+  destroyChart('fullHistory');
+  if(!allData.length) return;
+
+  const showTrend = document.getElementById('chkTrendlines').checked;
+  const labels    = allData.map(d => fmtShortDate(d.date));
+  const datasets  = buildTrendDatasets(allData, showTrend, 7);
+
+  document.getElementById('fullHistoryBadge').textContent =
+    allData.length + ' Day' + (allData.length===1?'':'s');
+
+  const options = buildTrendChartOptions(showTrend, 'Date');
+  options.plugins.legend.onClick = makeLegendClickHandler();
+
+  charts.fullHistory = new Chart(
+    document.getElementById('fullHistoryChart').getContext('2d'),
+    { type:'line', data:{ labels, datasets }, options }
+  );
+
+  document.getElementById('fullHistoryInsight').innerHTML = generateFullHistoryInsight(allData);
+}
+
+function renderLast30Chart(){
+  destroyChart('last30');
+  if(!allData.length) return;
+
+  const last30    = allData.slice(-30);
+  const showTrend = document.getElementById('chkTrendlines').checked;
+  const labels    = last30.map(d => fmtShortDate(d.date));
+  const datasets  = buildTrendDatasets(last30, showTrend, 7);
+
+  document.getElementById('last30Badge').textContent =
+    last30.length + ' Day' + (last30.length===1?'':'s');
+
+  const options = buildTrendChartOptions(showTrend, 'Date');
+  options.plugins.legend.onClick = makeLegendClickHandler();
+  options.scales.x.ticks.maxTicksLimit = 30;
+
+  charts.last30 = new Chart(
+    document.getElementById('last30Chart').getContext('2d'),
+    { type:'line', data:{ labels, datasets }, options }
+  );
+
+  document.getElementById('last30Insight').innerHTML = generateLast30Insight(last30);
+}
+
+/* ---- Other charts ---- */
+function renderHourChart(){
+  destroyChart('hour');
+  const totals=new Array(24).fill(0),low=new Array(24).fill(0);
+  allPatients.forEach(p=>{if(!p.time)return;totals[p.time.hour]++;if(p.acuity==='green')low[p.time.hour]++;});
+  const labels=totals.map((_,i)=>i.toString().padStart(2,'0')+':00');
+  charts.hour=new Chart(document.getElementById('hourChart').getContext('2d'),{
+    type:'bar',data:{labels,datasets:[
+      {label:'All Trainees',data:totals,backgroundColor:'#4b5320'},
+      {label:'Cat 4/5 Trainees',data:low,backgroundColor:'#2e8b2e'}
+    ]},
+    options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}
+  });
+  document.getElementById('hourInsight').innerHTML = generateHourInsight(allPatients);
+}
+
+function renderDowChart(){
+  destroyChart('dow');
+  const names=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const totals=new Array(7).fill(0),low=new Array(7).fill(0);
+  allPatients.forEach(p=>{if(!p.date)return;totals[p.date.getDay()]++;if(p.acuity==='green')low[p.date.getDay()]++;});
+  charts.dow=new Chart(document.getElementById('dowChart').getContext('2d'),{
+    type:'bar',data:{labels:names,datasets:[
+      {label:'All Trainees',data:totals,backgroundColor:'#4b5320'},
+      {label:'Cat 4/5 Trainees',data:low,backgroundColor:'#2e8b2e'}
+    ]},
+    options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}
+  });
+  document.getElementById('dowInsight').innerHTML = generateDowInsight(allPatients);
+}
+
+/* ==========================================================
+   BATTALION CHART — CHANGE 1
+   Enhanced tooltip with battalion total, % of all, and Cat 4/5 count.
+   ========================================================== */
+function renderBnCompanyChart(){
+  destroyChart('bnCompany');
+
+  // Last 7 days only
+  const cutoff = allData.length > 0
+    ? new Date(allData[allData.length-1].date.getTime() - 6*24*60*60*1000)
+    : new Date(0);
+  const patients7 = allPatients.filter(p => p.date && p.date >= cutoff);
+
+  // Build per-battalion company breakdown
+  const matrix={};const companySet=new Set();
+  patients7.forEach(p=>{
+    if(!p.battalion||!p.company)return;
+    if(!matrix[p.battalion])matrix[p.battalion]={};
+    matrix[p.battalion][p.company]=(matrix[p.battalion][p.company]||0)+1;
+    companySet.add(p.company);
+  });
+  const battalions=Object.keys(matrix).sort();
+  const companies=Array.from(companySet).sort();
+
+  // ── CHANGE 1: Precompute per-battalion metadata for tooltip ──
+  const totalAll = patients7.filter(p => p.battalion).length;
+  const bnMeta = {};
+  battalions.forEach(bn => {
+    const bnPatients = patients7.filter(p => p.battalion === bn);
+    bnMeta[bn] = {
+      total:    bnPatients.length,
+      cat45:    bnPatients.filter(p => p.acuity === 'green').length,
+      pctOfAll: totalAll > 0 ? ((bnPatients.length / totalAll) * 100).toFixed(1) : '0.0',
+    };
+  });
+
+  const palette=['#4b5320','#FFCC01','#c1272d','#2e8b2e','#e69500','#3d6e9c','#7d3c98','#16a085','#d35400','#5d4037','#1abc9c','#8e44ad','#2c3e50','#e74c3c','#f1c40f'];
+  const datasets=companies.map((co,i)=>({
+    label:'Co '+co,
+    data:battalions.map(bn=>matrix[bn][co]||0),
+    backgroundColor:palette[i%palette.length],
+    borderColor:'#fff',borderWidth:1
+  }));
+
+  charts.bnCompany=new Chart(document.getElementById('bnCompanyChart').getContext('2d'),{
+    type:'bar',data:{labels:battalions,datasets},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'bottom'},
+        tooltip:{
+          callbacks:{
+            // ── CHANGE 1: Inject battalion summary stats after company breakdown ──
+            afterBody: (items) => {
+              if (!items || !items.length) return '';
+              const bn = items[0].label;
+              const meta = bnMeta[bn];
+              if (!meta) return '';
+              return [
+                '',
+                '──────────────',
+                `Battalion total: ${meta.total} visits`,
+                `% of all trainees: ${meta.pctOfAll}%`,
+                `Cat 4/5 visits: ${meta.cat45}`,
+              ];
+            }
+          }
+        },
+        title:{display:true,text:'Last 7 Days — each bar = one Battalion; segments = Companies within that Battalion'}
+      },
+      scales:{
+        x:{stacked:true,title:{display:true,text:'Battalion'}},
+        y:{stacked:true,beginAtZero:true,ticks:{stepSize:1},title:{display:true,text:'Trainee Visits'}}
+      }
+    }
+  });
+
+  document.getElementById('bnInsight').innerHTML = generateBnInsight(patients7);
+}
+
+function renderDailyTable(){
+  document.getElementById('dailyTableBody').innerHTML=allData.map(d=>`
+    <tr>
+      <td>${fmtDate(d.date)}</td><td>${d.sheetUsed||''}</td><td>${d.census}</td>
+      <td><b>${d.trainees}</b></td><td>${d.medscreen}</td><td>${d.lwobs}</td>
+      <td>${d.ama}</td><td>${d.transfer}</td><td>${d.admitted}</td><td>${d.ambulance}</td>
+      <td style="background:#fde0e0;font-weight:bold">${d.cat1}</td>
+      <td style="background:#ffe7c2;font-weight:bold">${d.cat23}</td>
+      <td style="background:#dff5d8;font-weight:bold">${d.cat45}</td>
+      <td style="background:#eee;font-weight:bold;color:${d.unknown?'#c00':'#888'}">${d.unknown}</td>
+    </tr>`).join('');
+}
+
+function renderPatientTable(){
+  const colorMap={red:'#fde0e0',orange:'#ffe7c2',green:'#dff5d8',unknown:'#f0f0f0'};
+  const labelMap={red:'Cat 1 🔴',orange:'Cat 2/3 🟠',green:'Cat 4/5 🟢',unknown:'Unknown ⚪'};
+  const sorted=allPatients.slice().sort((a,b)=>{
+    const dd=(a.date||0)-(b.date||0);if(dd)return dd;
+    const ah=a.time?a.time.hour*60+a.time.minute:0,bh=b.time?b.time.hour*60+b.time.minute:0;
+    return ah-bh;
+  });
+  document.getElementById('patientTableBody').innerHTML=sorted.map(p=>`
+    <tr style="background:${colorMap[p.acuity]||'#fff'}">
+      <td>${fmtDate(p.date)}</td><td>${p.timeStr}</td><td>${p.name}</td>
+      <td>${p.company}</td><td>${p.battalion}</td>
+      <td>${labelMap[p.acuity]||'Unknown'}</td>
+      <td><span class="swatch" style="background:#${p.fillHex||'ffffff'}"></span>${p.fillHex?'#'+p.fillHex:'(none)'}</td>
+    </tr>`).join('');
+}
+
+function clearAll(){
+  allData=[];allPatients=[];
+  Object.keys(charts).forEach(destroyChart);
+  fi.value='';debugLines=[];
+  document.getElementById('debugPanel').innerHTML='<span class="debug-empty">No files parsed yet. Drop a file above to see parsing details.</span>';
+  render();
+}
+
+function exportCSV(){
+  if(!allData.length){alert('No data to export.');return;}
+  let csv='Date,Sheet,Census,Trainees,Medscreen,LWOBS,AMA,Transfer,Admitted,Ambulance,Cat1,Cat2_3,Cat4_5,Unknown\n';
+  allData.forEach(d=>{
+    csv+=[fmtDate(d.date),d.sheetUsed,d.census,d.trainees,d.medscreen,d.lwobs,d.ama,d.transfer,d.admitted,d.ambulance,d.cat1,d.cat23,d.cat45,d.unknown].join(',')+'\n';
+  });
+  csv+='\n\nDate,CheckInTime,Name,Company,Battalion,Acuity,FillHex\n';
+  allPatients.forEach(p=>{
+    const lab={red:'Cat1',orange:'Cat2_3',green:'Cat4_5',unknown:'Unknown'}[p.acuity]||'Unknown';
+    csv+=[fmtDate(p.date),'"'+p.timeStr+'"','"'+p.name+'"',p.company,p.battalion,lab,p.fillHex].join(',')+'\n';
+  });
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='glwach_er_export.csv';
+  a.click();
+}
+</script>
+</body>
+</html>
