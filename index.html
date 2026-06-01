@@ -63,6 +63,59 @@
   }
   .chart-insight strong { color: #4b5320; }
 
+  /* Unit Volume panel specific */
+  .uv-toolbar {
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start;
+    margin-bottom: 14px; padding: 12px 14px; background: #f9f9f9;
+    border: 1px solid #ddd; border-radius: 4px;
+  }
+  .uv-block { display: flex; flex-direction: column; gap: 6px; }
+  .uv-block > .uv-block-title {
+    font-size: 10px; font-weight: bold; text-transform: uppercase;
+    letter-spacing: 1px; color: #4b5320;
+  }
+  .uv-breadcrumb { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 13px; }
+  .uv-crumb {
+    background: #4b5320; color: #fff; padding: 4px 10px; border-radius: 12px;
+    font-size: 12px; font-weight: bold; cursor: pointer; border: none;
+    text-transform: none; letter-spacing: normal;
+  }
+  .uv-crumb:hover { background: #000; color: #FFCC01; }
+  .uv-crumb.current { background: #FFCC01; color: #000; cursor: default; }
+  .uv-crumb.current:hover { background: #FFCC01; color: #000; }
+  .uv-sep { color: #888; font-weight: bold; }
+  .uv-esi-row { display: flex; gap: 14px; flex-wrap: wrap; }
+  .uv-esi-row label { font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px; cursor: pointer; }
+  .uv-esi-row input[type=checkbox] { width: 14px; height: 14px; cursor: pointer; }
+  .uv-gran-row { display: flex; gap: 6px; }
+  .uv-gran-btn {
+    padding: 5px 12px; font-size: 11px; background: #fff; color: #4b5320;
+    border: 1px solid #4b5320; border-radius: 2px; cursor: pointer;
+    text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;
+  }
+  .uv-gran-btn.active { background: #4b5320; color: #fff; }
+  .uv-gran-btn:hover { background: #000; color: #FFCC01; border-color: #000; }
+  .uv-date-row { display: flex; flex-direction: column; gap: 4px; min-width: 320px; flex: 1; }
+  .uv-slider-wrap { position: relative; height: 34px; }
+  .uv-slider-track { position: absolute; top: 14px; left: 0; right: 0; height: 6px; background: #ddd; border-radius: 3px; }
+  .uv-slider-range { position: absolute; top: 14px; height: 6px; background: #4b5320; border-radius: 3px; }
+  .uv-slider-wrap input[type=range] {
+    position: absolute; top: 6px; left: 0; width: 100%; margin: 0;
+    -webkit-appearance: none; appearance: none; background: none;
+    pointer-events: none; height: 22px;
+  }
+  .uv-slider-wrap input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; pointer-events: auto;
+    width: 18px; height: 18px; border-radius: 50%; background: #FFCC01;
+    border: 2px solid #4b5320; cursor: pointer;
+  }
+  .uv-slider-wrap input[type=range]::-moz-range-thumb {
+    pointer-events: auto; width: 18px; height: 18px; border-radius: 50%;
+    background: #FFCC01; border: 2px solid #4b5320; cursor: pointer;
+  }
+  .uv-date-labels { display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; color: #1a1a1a; }
+  .uv-date-labels .sub { font-size: 10px; color: #888; font-weight: normal; }
+
   /* Collapsible debug section */
   .collapsible { background: #fff; margin-top: 20px; border-left: 4px solid #FFCC01; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
   .collapsible-header { background: #000; color: #FFCC01; padding: 12px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; text-transform: uppercase; font-size: 13px; letter-spacing: 1px; font-weight: bold; }
@@ -89,12 +142,12 @@
     <h2>Emergency Department — Commander's Report Tracker</h2>
   </div>
 </div>
-<div class="subheader">Fort Leonard Wood, Missouri &nbsp;•&nbsp; Trainee Acuity &amp; Volume Analytics</div>
+<div class="subheader">Fort Leonard Wood, Missouri &nbsp;•&nbsp; Trainee Acuity & Volume Analytics</div>
 
 <div class="container">
 
   <div id="dropZone" class="drop-zone">
-    Drag &amp; Drop Commander's Report .xlsx Files Here
+    Drag & Drop Commander's Report .xlsx Files Here
     <div class="hint">Multiple files supported. Filename must contain the date, e.g., 05-15-2026.xlsx</div>
     <input type="file" id="fileInput" multiple accept=".xlsx,.xls" style="display:none">
   </div>
@@ -109,7 +162,7 @@
   <!-- Collapsible File Log -->
   <div id="debugCollapsible" class="collapsible">
     <div class="collapsible-header" onclick="toggleDebug()">
-      <span>File Log &amp; Parsing Details</span>
+      <span>File Log & Parsing Details</span>
       <span class="arrow">▶</span>
     </div>
     <div class="collapsible-body">
@@ -164,10 +217,56 @@
       </div>
     </div>
 
+    <!-- ===== NEW: Unit Volume Over Time (replaces old battalion stacked bar) ===== -->
     <div class="panel">
-      <h3>Trainee Volume by Battalion (Last 7 Days) — Stacked by Company</h3>
-      <canvas id="bnCompanyChart" style="max-height:420px;"></canvas>
-      <div class="chart-insight" id="bnInsight"></div>
+      <h3>Unit Volume Over Time — BDE / BN / CO Drill-Down</h3>
+
+      <div class="uv-toolbar">
+        <div class="uv-block" style="flex:1; min-width:260px;">
+          <span class="uv-block-title">Drill Level</span>
+          <div class="uv-breadcrumb" id="uvBreadcrumb"></div>
+        </div>
+
+        <div class="uv-block">
+          <span class="uv-block-title">Granularity</span>
+          <div class="uv-gran-row" id="uvGranRow">
+            <button class="uv-gran-btn active" data-gran="auto"  onclick="uvSetGran('auto')">Auto</button>
+            <button class="uv-gran-btn"        data-gran="day"   onclick="uvSetGran('day')">Day</button>
+            <button class="uv-gran-btn"        data-gran="week"  onclick="uvSetGran('week')">Week</button>
+            <button class="uv-gran-btn"        data-gran="month" onclick="uvSetGran('month')">Month</button>
+          </div>
+        </div>
+
+        <div class="uv-block">
+          <span class="uv-block-title">Acuity (ESI) Filter</span>
+          <div class="uv-esi-row" id="uvEsiRow">
+            <label><input type="checkbox" id="uvEsiRed"     checked onchange="renderUnitVolumeChart()"> Cat 1 🔴</label>
+            <label><input type="checkbox" id="uvEsiOrange"  checked onchange="renderUnitVolumeChart()"> Cat 2/3 🟠</label>
+            <label><input type="checkbox" id="uvEsiGreen"   checked onchange="renderUnitVolumeChart()"> Cat 4/5 🟢</label>
+            <label><input type="checkbox" id="uvEsiUnknown" checked onchange="renderUnitVolumeChart()"> Unknown ⚪</label>
+          </div>
+        </div>
+
+        <div class="uv-block uv-date-row">
+          <span class="uv-block-title">Date Range</span>
+          <div class="uv-slider-wrap">
+            <div class="uv-slider-track"></div>
+            <div class="uv-slider-range" id="uvSliderRange"></div>
+            <input type="range" id="uvSliderLo" min="0" max="0" value="0">
+            <input type="range" id="uvSliderHi" min="0" max="0" value="0">
+          </div>
+          <div class="uv-date-labels">
+            <div><span id="uvDateLo">—</span><div class="sub">start</div></div>
+            <div style="text-align:right;"><span id="uvDateHi">—</span><div class="sub">end</div></div>
+          </div>
+        </div>
+      </div>
+
+      <canvas id="unitVolumeChart" style="max-height:420px;"></canvas>
+      <div style="font-size:11px;color:#888;margin-top:6px;">
+        Line graph of timed ER check-ins over time. Drill from Brigade → Battalion → Company via the breadcrumb. Acuity checkboxes filter what each line counts (all on = total). Drag the date-range handles to widen or narrow the window. Click a legend label to toggle a line.
+      </div>
+      <div class="chart-insight" id="unitVolumeInsight"></div>
     </div>
 
     <div class="panel">
@@ -194,7 +293,7 @@
           <thead>
             <tr>
               <th>Date</th><th>Check-in Time</th><th>Name</th>
-              <th>Company</th><th>Battalion</th><th>Acuity</th><th>Fill (hex)</th>
+              <th>Company</th><th>Battalion</th><th>BDE</th><th>Acuity</th><th>Fill (hex)</th>
             </tr>
           </thead>
           <tbody id="patientTableBody"></tbody>
@@ -216,8 +315,15 @@
 
 <script>
 /* ==========================================================
-   GLWACH ER Commander's Report Tracker  –  v22
-   - CHANGE 1: Battalion chart top-3 narrative + enhanced tooltip
+   GLWACH ER Commander's Report Tracker  –  v23
+   - CHANGE: Replaced "Trainee Volume by Battalion (Last 7 Days)"
+     stacked bar with "Unit Volume Over Time" line chart featuring:
+       • BDE→BN→CO drill-down (breadcrumb navigation)
+       • draggable two-handle date-range slider (default last 30 days)
+       • ESI acuity checkbox filters (Cat1 / Cat2-3 / Cat4-5 / Unknown)
+       • Day/Week/Month/Auto granularity
+   - Added unit normalization layer (BN→BDE mapping, phonetic
+     company names, noisy battalion formats, leading/glued units).
    ========================================================== */
 
 let allData     = [];
@@ -301,6 +407,89 @@ function timeToStr(t) {
   const ap = t.hour >= 12 ? 'PM' : 'AM';
   let h12 = t.hour % 12; if (h12 === 0) h12 = 12;
   return h12 + ':' + t.minute.toString().padStart(2,'0') + ' ' + ap;
+}
+
+/* ==========================================================
+   UNIT NORMALIZATION LAYER
+   Turns messy unit strings into { company, battalion, bde }.
+   - Phonetic company names (Fox->F, Bravo->B, etc.)
+   - Noisy battalion formats: 2-10 -> 210, 1/48 -> 148, 43rd -> 43
+   - BN -> BDE mapping; unmatched/support tags -> "Other Units"
+   ========================================================== */
+
+const BDE_3RD_CHEM   = '3rd Chemical BDE';
+const BDE_14TH_MP    = '14th Military Police BDE';
+const BDE_1ST_ENG    = '1st Engineer BDE';
+const BDE_43RD_RECEP = '43rd Reception BN';
+const BDE_OTHER      = 'Other Units';
+
+// Battalion number -> BDE
+const BN_TO_BDE = {
+  '210': BDE_3RD_CHEM, '310': BDE_3RD_CHEM, '148': BDE_3RD_CHEM, '84': BDE_3RD_CHEM, '58': BDE_3RD_CHEM,
+  '787': BDE_14TH_MP,  '795': BDE_14TH_MP,  '701': BDE_14TH_MP,
+  '31': BDE_1ST_ENG,   '35': BDE_1ST_ENG,   '554': BDE_1ST_ENG, '169': BDE_1ST_ENG,
+  '43': BDE_43RD_RECEP,
+};
+
+// Ordering for chart line stability
+const BDE_ORDER = [BDE_3RD_CHEM, BDE_14TH_MP, BDE_1ST_ENG, BDE_43RD_RECEP, BDE_OTHER];
+
+// Phonetic company names -> letter
+const PHONETIC_CO = {
+  ALPHA:'A', BRAVO:'B', CHARLIE:'C', DELTA:'D', ECHO:'E',
+  FOX:'F', FOXTROT:'F', GOLF:'G', HOTEL:'H',
+};
+
+/* Pull a company letter from a token like "B795", "Fox310", "Alpha" */
+function extractCompany(token) {
+  if (!token) return '';
+  const t = String(token).trim();
+  // Phonetic prefix (Fox310, Bravo, Foxtrot31...)
+  const phon = t.match(/^(alpha|bravo|charlie|delta|echo|foxtrot|fox|golf|hotel)/i);
+  if (phon) {
+    const key = phon[1].toUpperCase();
+    if (PHONETIC_CO[key]) return PHONETIC_CO[key];
+  }
+  // Single leading letter immediately followed by a digit or slash (B795, F1/48)
+  const lead = t.match(/^([A-Za-z])(?=\s*[\d\/\-])/);
+  if (lead) return lead[1].toUpperCase();
+  return '';
+}
+
+/* Pull a canonical battalion number from a token. Returns '' if none. */
+function extractBattalionNumber(token) {
+  if (!token) return '';
+  const t = String(token).trim();
+  // "43rd" written out
+  if (/^43rd\b/i.test(t)) return '43';
+  // Strip any leading phonetic/single-letter company prefix, then grab digits
+  let rest = t.replace(/^(alpha|bravo|charlie|delta|echo|foxtrot|fox|golf|hotel)/i, '');
+  rest = rest.replace(/^[A-Za-z]\s*/, ''); // single leading company letter
+  // Now collapse all non-digits (handles 2-10, 1/48, etc.)
+  const digits = rest.replace(/\D/g, '');
+  return digits;
+}
+
+/* Master normalizer. Returns { company, battalion, bde, raw }. */
+function normalizeUnit(rawText) {
+  const raw = rawText ? String(rawText).trim() : '';
+  if (!raw) return { company:'', battalion:'', bde:BDE_OTHER, raw:'' };
+
+  // Take the first whitespace-separated token that looks unit-like; otherwise whole string.
+  // Support strings often have a slash (Motor T, VA Sharing, /XRAY) -> Other Units.
+  const company   = extractCompany(raw);
+  const battalion = extractBattalionNumber(raw);
+
+  let bde;
+  if (battalion && BN_TO_BDE[battalion]) {
+    bde = BN_TO_BDE[battalion];
+  } else {
+    bde = BDE_OTHER;
+  }
+
+  // If it mapped to Other Units, we still keep whatever battalion text we found
+  // (may be empty) so the patient is counted in Other Units.
+  return { company, battalion: (BN_TO_BDE[battalion] ? battalion : (battalion || '')), bde, raw };
 }
 
 const UNIT_REGEX = /^([A-Za-z])[\/\-]?(\d{2,4}|FTU|TU|RHU)$/i;
@@ -630,6 +819,33 @@ function extractMetric(grid,labelRegex,maxRow,maxCol){
   return 0;
 }
 
+/* Given a name cell and an adjacent unit cell, derive the best unit string.
+   Handles: unit AFTER name (separate cell), unit glued/leading in name cell
+   (e.g. "a43swendsen,kd"), and phonetic/written forms. */
+function deriveUnitString(nameStr, unitCellStr) {
+  // 1) Dedicated unit cell wins if it yields a known battalion or any unit-ish text.
+  if (unitCellStr) {
+    const u = normalizeUnit(unitCellStr);
+    if (u.battalion || u.company || /[A-Za-z]/.test(unitCellStr)) return unitCellStr;
+  }
+  // 2) Unit may be glued to the FRONT of the name: "a43swendsen,kd" or "Fox310 garcia"
+  const front = nameStr.match(/^((?:alpha|bravo|charlie|delta|echo|foxtrot|fox|golf|hotel)\s*\d{1,4}|[A-Za-z]\s*\d{1,4}|43rd|\d{1,4}(?:st|nd|rd|th)?)/i);
+  if (front) {
+    const cand = front[1];
+    const u = normalizeUnit(cand);
+    if (u.battalion) return cand;
+  }
+  // 3) Unit may be the LAST token of the name: "Henderson,J B787"
+  const parts = nameStr.split(/\s+/);
+  if (parts.length >= 2) {
+    const last = parts[parts.length-1];
+    const u = normalizeUnit(last);
+    if (u.battalion) return last;
+  }
+  // 4) Fallback: whatever the unit cell had (may be empty -> Other Units)
+  return unitCellStr || '';
+}
+
 function parseSheet(best,date,filename){
   const {grid,maxRow,maxCol,name:sheetName}=best;
   const metrics={
@@ -688,15 +904,12 @@ function parseSheet(best,date,filename){
     }
     consecutiveEmpty=0;
 
-    let company='',battalion='';
-    if(unitCell){
-      const u=parseUnit(unitCell.str);
-      if(u){company=u.company;battalion=u.battalion;}
-    }
-    if(!company){
-      const parts=nameCell.str.split(/\s+/);
-      if(parts.length>=2){const u=parseUnit(parts[parts.length-1]);if(u){company=u.company;battalion=u.battalion;}}
-    }
+    // ── UNIT NORMALIZATION ──
+    const unitStr = deriveUnitString(nameCell.str, unitCell ? unitCell.str : '');
+    const u = normalizeUnit(unitStr);
+    const company   = u.company;
+    const battalion = u.battalion;
+    const bde       = u.bde;
 
     let fillHex=nameCell.fillHex||(unitCell&&unitCell.fillHex)||null;
     let acuity=classifyHex(fillHex);
@@ -705,7 +918,7 @@ function parseSheet(best,date,filename){
     const cleanName=nameCell.str.replace(/\s+[A-Za-z][\/\-]?\d{2,4}\s*$/,'').trim();
     const displayTime=timeParsed?timeToStr(timeParsed):(timeCell.str||'');
 
-    patients.push({timeStr:displayTime,time:timeParsed,name:cleanName,company,battalion,acuity,fillHex:fillHex||''});
+    patients.push({timeStr:displayTime,time:timeParsed,name:cleanName,company,battalion,bde,acuity,fillHex:fillHex||''});
   }
 
   dbg('  ── Patients ──','info');
@@ -714,9 +927,10 @@ function parseSheet(best,date,filename){
       ?`<span class="swatch" style="background:#${p.fillHex}"></span>#${p.fillHex}`
       :'<span class="swatch" style="background:#fff"></span>(no fill)';
     const cls=p.acuity==='unknown'?'warn':'info';
+    const unitLabel=(p.company||'?')+(p.battalion||'?')+' ['+p.bde+']';
     dbg('    P'+(idx+1).toString().padStart(2,'0')+': '+
         escapeHtml(p.timeStr.padEnd(10))+'  '+
-        escapeHtml((p.name+' '+p.company+p.battalion).padEnd(28))+'  '+
+        escapeHtml((p.name+' '+unitLabel).padEnd(40))+'  '+
         sw+' → <b>'+p.acuity+'</b>',cls);
   });
 
@@ -828,23 +1042,19 @@ function generateLast30Insight(data) {
 function generateHourInsight(patients) {
   if (!patients || !patients.length) return 'No patient data loaded.';
 
-  // Filter to Cat 4/5 only (the chart's focus)
   const cat45 = patients.filter(p => p.acuity === 'green' && p.time);
   const total = cat45.length;
 
   if (total === 0) return 'No Cat 4/5 (low-acuity) trainee visits in the loaded data.';
 
-  // Hourly counts
   const counts = new Array(24).fill(0);
   cat45.forEach(p => { counts[p.time.hour]++; });
 
-  // Peak hour
   const peakHr = counts.indexOf(Math.max(...counts));
   const peakCount = counts[peakHr];
   const peakPct = Math.round((peakCount/total)*100);
   const peakHrLabel = String(peakHr).padStart(2,'0') + '00';
 
-  // Densest 4-hour sliding window
   let bestStart = 0, bestSum = 0;
   for (let i = 0; i <= 24-4; i++) {
     const sum = counts[i]+counts[i+1]+counts[i+2]+counts[i+3];
@@ -854,7 +1064,6 @@ function generateHourInsight(patients) {
   const blockEnd   = String(bestStart+4).padStart(2,'0') + '00';
   const blockPct   = Math.round((bestSum/total)*100);
 
-  // Time-of-day blocks: overnight (0-5), morning (6-11), afternoon (12-17), evening (18-23)
   const overnight = counts.slice(0,6).reduce((a,b)=>a+b,0);
   const morning   = counts.slice(6,12).reduce((a,b)=>a+b,0);
   const afternoon = counts.slice(12,18).reduce((a,b)=>a+b,0);
@@ -896,20 +1105,17 @@ function generateDowInsight(patients) {
   const counts = new Array(7).fill(0);
   dated.forEach(p => { counts[p.date.getDay()]++; });
 
-  // Count unique date occurrences per day-of-week (for per-occurrence average)
   const occurrenceDates = [new Set(),new Set(),new Set(),new Set(),new Set(),new Set(),new Set()];
   dated.forEach(p => {
     occurrenceDates[p.date.getDay()].add(p.date.getTime());
   });
   const occurrences = occurrenceDates.map(s => s.size);
 
-  // Total unique dates / 7 for "weeks of data" estimate
   const allDates = new Set();
   dated.forEach(p => allDates.add(p.date.getTime()));
   const totalDates = allDates.size;
   const weeksApprox = (totalDates / 7).toFixed(1);
 
-  // Busiest & lightest (lightest only among days that actually have occurrences)
   let maxIdx = 0, minIdx = -1;
   for (let i = 0; i < 7; i++) {
     if (counts[i] > counts[maxIdx]) maxIdx = i;
@@ -928,7 +1134,6 @@ function generateDowInsight(patients) {
 
   const ratio = minCount > 0 ? (maxCount/minCount).toFixed(1) : '∞';
 
-  // Weekday vs weekend daily averages
   let weekdayCount = 0, weekdayOcc = 0, weekendCount = 0, weekendOcc = 0;
   for (let i = 0; i < 7; i++) {
     if (i === 0 || i === 6) { weekendCount += counts[i]; weekendOcc += occurrences[i]; }
@@ -953,53 +1158,379 @@ function generateDowInsight(patients) {
   return s1 + ' ' + s2;
 }
 
-/* ----- BATTALION insight — top 3 utilizers + concentration flag ----- */
-function generateBnInsight(patients7) {
-  if (!patients7.length) return 'No trainee visits in the last 7 days.';
+/* ==========================================================
+   UNIT VOLUME OVER TIME — line chart with drill-down
+   ========================================================== */
 
-  const bnCounts = {};
-  patients7.forEach(p => {
-    if (!p.battalion) return;
-    bnCounts[p.battalion] = (bnCounts[p.battalion] || 0) + 1;
+// Drill state: level = 'bde' | 'bn' | 'co'
+let uvState = {
+  level:    'bde',
+  bde:      null,   // selected BDE when at bn/co level
+  bn:       null,   // selected battalion (string) when at co level
+  gran:     'auto', // auto | day | week | month
+  loIdx:    null,   // date slider low index (into uvDateList)
+  hiIdx:    null,   // date slider high index
+};
+let uvDateList = []; // sorted unique day-timestamps (number) across all data
+
+function uvActiveEsi() {
+  return {
+    red:     document.getElementById('uvEsiRed').checked,
+    orange:  document.getElementById('uvEsiOrange').checked,
+    green:   document.getElementById('uvEsiGreen').checked,
+    unknown: document.getElementById('uvEsiUnknown').checked,
+  };
+}
+function uvAcuityPasses(acuity, esi) {
+  if (acuity === 'red')    return esi.red;
+  if (acuity === 'orange') return esi.orange;
+  if (acuity === 'green')  return esi.green;
+  return esi.unknown;
+}
+
+function uvSetGran(g) {
+  uvState.gran = g;
+  document.querySelectorAll('#uvGranRow .uv-gran-btn').forEach(b => {
+    b.classList.toggle('active', b.getAttribute('data-gran') === g);
   });
-  const bns = Object.entries(bnCounts).sort((a,b)=>b[1]-a[1]);
-  if (!bns.length) return 'No battalion data available for the last 7 days.';
+  renderUnitVolumeChart();
+}
 
-  const total = patients7.length;
-  const numBns = bns.length;
+/* Drill navigation */
+function uvGoBde() { uvState.level='bde'; uvState.bde=null; uvState.bn=null; renderUnitVolumeChart(); }
+function uvGoBn(bde) { uvState.level='bn'; uvState.bde=bde; uvState.bn=null; renderUnitVolumeChart(); }
+function uvGoCo(bn) { uvState.level='co'; uvState.bn=bn; renderUnitVolumeChart(); }
 
-  // Top 3 (or fewer if not enough battalions)
-  const topN = Math.min(3, numBns);
-  const top = bns.slice(0, topN);
-  const topNames = top.map(([bn,c]) => `<strong>BN ${bn}</strong> (${c} visits, ${Math.round((c/total)*100)}%)`).join(', ');
-  const topSum = top.reduce((s,[,c])=>s+c,0);
-  const topPct = Math.round((topSum/total)*100);
+function uvRenderBreadcrumb() {
+  const el = document.getElementById('uvBreadcrumb');
+  const crumbs = [];
+  // Always: All Brigades
+  crumbs.push(
+    uvState.level==='bde'
+      ? `<button class="uv-crumb current">All Brigades</button>`
+      : `<button class="uv-crumb" onclick="uvGoBde()">All Brigades</button>`
+  );
+  if (uvState.bde) {
+    crumbs.push('<span class="uv-sep">▸</span>');
+    crumbs.push(
+      uvState.level==='bn'
+        ? `<button class="uv-crumb current">${escapeHtml(uvState.bde)}</button>`
+        : `<button class="uv-crumb" onclick="uvGoBn('${escapeHtml(uvState.bde).replace(/'/g,"\\'")}')">${escapeHtml(uvState.bde)}</button>`
+    );
+  }
+  if (uvState.bn) {
+    crumbs.push('<span class="uv-sep">▸</span>');
+    crumbs.push(`<button class="uv-crumb current">BN ${escapeHtml(uvState.bn)}</button>`);
+  }
+  el.innerHTML = crumbs.join('');
+}
 
-  const remaining = bns.slice(topN);
-  const remainingSum = remaining.reduce((s,[,c])=>s+c,0);
-  const remainingPct = Math.round((remainingSum/total)*100);
+/* Decide effective granularity given a span of days */
+function uvEffectiveGran(spanDays) {
+  if (uvState.gran !== 'auto') return uvState.gran;
+  if (spanDays <= 45)  return 'day';
+  if (spanDays <= 180) return 'week';
+  return 'month';
+}
 
-  // Herfindahl-Hirschman concentration index
-  const hhi = bns.reduce((sum, [,c]) => sum + Math.pow(c/total, 2), 0);
+/* Bucket-key + label for a given date at a granularity */
+function uvBucketKey(d, gran) {
+  if (gran === 'day') {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  }
+  if (gran === 'week') {
+    // ISO-ish: snap to Sunday of that week
+    const day = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    day.setDate(day.getDate() - day.getDay());
+    return day.getTime();
+  }
+  // month
+  return new Date(d.getFullYear(), d.getMonth(), 1).getTime();
+}
+function uvBucketLabel(ts, gran) {
+  const d = new Date(ts);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  if (gran === 'month') return months[d.getMonth()] + ' ' + d.getFullYear();
+  if (gran === 'week')  return 'Wk ' + months[d.getMonth()] + ' ' + d.getDate();
+  return months[d.getMonth()] + ' ' + d.getDate();
+}
 
-  // Sentence 1 — top 3 callout
-  let s1;
-  if (numBns >= 3) {
-    s1 = `Over the last 7 days, <strong>${numBns} battalions</strong> sent trainees to the ER for <strong>${total} total visits</strong>. Top 3 utilizers: ${topNames} — these three account for <strong>${topPct}%</strong> of all trainee ER visits${remaining.length > 0 ? `, leaving <strong>${remainingPct}%</strong> distributed across the remaining ${remaining.length} battalion${remaining.length>1?'s':''}` : ''}.`;
-  } else {
-    s1 = `Over the last 7 days, <strong>${numBns} battalion${numBns>1?'s':''}</strong> sent trainees to the ER for <strong>${total} total visits</strong>. Utilizers: ${topNames}.`;
+/* Distinct color palette for unit lines */
+const UV_PALETTE = [
+  '#4b5320','#c1272d','#2e8b2e','#e69500','#3d6e9c',
+  '#7d3c98','#16a085','#d35400','#5d4037','#1abc9c',
+  '#8e44ad','#2c3e50','#e74c3c','#b8860b','#0066cc',
+  '#FFCC01','#006400','#8b008b','#ff1493','#00ced1'
+];
+
+/* Build the date slider after data changes */
+function uvBuildDateSlider() {
+  // unique day timestamps
+  const set = new Set();
+  allPatients.forEach(p => {
+    if (!p.date) return;
+    set.add(new Date(p.date.getFullYear(), p.date.getMonth(), p.date.getDate()).getTime());
+  });
+  uvDateList = Array.from(set).sort((a,b)=>a-b);
+
+  const lo = document.getElementById('uvSliderLo');
+  const hi = document.getElementById('uvSliderHi');
+  if (!uvDateList.length) {
+    lo.min = hi.min = 0; lo.max = hi.max = 0; lo.value = hi.value = 0;
+    uvState.loIdx = uvState.hiIdx = 0;
+    uvUpdateDateLabels();
+    return;
+  }
+  const maxIdx = uvDateList.length - 1;
+  lo.min = '0'; lo.max = String(maxIdx);
+  hi.min = '0'; hi.max = String(maxIdx);
+
+  // default: last 30 calendar days (by date value, not index)
+  const lastTs = uvDateList[maxIdx];
+  const cutoffTs = lastTs - 29*24*60*60*1000;
+  let defLo = 0;
+  for (let i = 0; i <= maxIdx; i++) {
+    if (uvDateList[i] >= cutoffTs) { defLo = i; break; }
+  }
+  uvState.loIdx = defLo;
+  uvState.hiIdx = maxIdx;
+  lo.value = String(defLo);
+  hi.value = String(maxIdx);
+  uvUpdateDateLabels();
+}
+
+function uvUpdateDateLabels() {
+  const loEl = document.getElementById('uvDateLo');
+  const hiEl = document.getElementById('uvDateHi');
+  const rangeBar = document.getElementById('uvSliderRange');
+  if (!uvDateList.length) {
+    loEl.textContent = '—'; hiEl.textContent = '—';
+    rangeBar.style.left = '0%'; rangeBar.style.width = '0%';
+    return;
+  }
+  const maxIdx = uvDateList.length - 1;
+  loEl.textContent = fmtShortDate(new Date(uvDateList[uvState.loIdx]));
+  hiEl.textContent = fmtShortDate(new Date(uvDateList[uvState.hiIdx]));
+  const lpct = maxIdx>0 ? (uvState.loIdx/maxIdx)*100 : 0;
+  const hpct = maxIdx>0 ? (uvState.hiIdx/maxIdx)*100 : 100;
+  rangeBar.style.left  = lpct + '%';
+  rangeBar.style.width = (hpct - lpct) + '%';
+}
+
+/* Wire slider handles (called once at startup) */
+function uvWireSlider() {
+  const lo = document.getElementById('uvSliderLo');
+  const hi = document.getElementById('uvSliderHi');
+  function onInput() {
+    let l = parseInt(lo.value,10);
+    let h = parseInt(hi.value,10);
+    if (l > h) { // swap so handles can cross
+      [l,h] = [h,l];
+    }
+    uvState.loIdx = l;
+    uvState.hiIdx = h;
+    uvUpdateDateLabels();
+    renderUnitVolumeChart();
+  }
+  lo.addEventListener('input', onInput);
+  hi.addEventListener('input', onInput);
+}
+
+/* Core: compute datasets for current state and render */
+function renderUnitVolumeChart() {
+  destroyChart('unitVolume');
+  uvRenderBreadcrumb();
+
+  if (!uvDateList.length) {
+    document.getElementById('unitVolumeInsight').innerHTML = 'No dated trainee visits loaded.';
+    return;
   }
 
-  // Sentence 2 — concentration flag
+  const loTs = uvDateList[uvState.loIdx];
+  const hiTs = uvDateList[uvState.hiIdx];
+  const spanDays = Math.round((hiTs - loTs) / (24*60*60*1000)) + 1;
+  const gran = uvEffectiveGran(spanDays);
+  const esi = uvActiveEsi();
+
+  // Filter patients: timed visits only, within date window, passing ESI filter
+  const filtered = allPatients.filter(p => {
+    if (!p.time || !p.date) return false;
+    const dts = new Date(p.date.getFullYear(), p.date.getMonth(), p.date.getDate()).getTime();
+    if (dts < loTs || dts > hiTs) return false;
+    if (!uvAcuityPasses(p.acuity, esi)) return false;
+    // drill scoping
+    if (uvState.level === 'bn'  && p.bde !== uvState.bde) return false;
+    if (uvState.level === 'co'  && p.bde !== uvState.bde) return false;
+    if (uvState.level === 'co'  && (p.battalion||'') !== uvState.bn) return false;
+    return true;
+  });
+
+  // Determine grouping key per patient based on level
+  function groupOf(p) {
+    if (uvState.level === 'bde') return p.bde;
+    if (uvState.level === 'bn')  return p.battalion ? ('BN ' + p.battalion) : 'BN (unknown)';
+    return p.company ? ('Co ' + p.company) : 'Co (unknown)';
+  }
+
+  // Build set of buckets (X axis) across the window at the chosen granularity
+  const bucketSet = new Set();
+  filtered.forEach(p => bucketSet.add(uvBucketKey(p.date, gran)));
+  // Also ensure we span empty buckets between lo and hi for continuity
+  // (add bucket keys for each step in range)
+  const stepMs = gran==='day' ? 24*60*60*1000 : gran==='week' ? 7*24*60*60*1000 : null;
+  let cursor = uvBucketKey(new Date(loTs), gran);
+  const endKey = uvBucketKey(new Date(hiTs), gran);
+  if (gran === 'month') {
+    let c = new Date(cursor);
+    const end = new Date(endKey);
+    while (c <= end) { bucketSet.add(c.getTime()); c = new Date(c.getFullYear(), c.getMonth()+1, 1); }
+  } else {
+    while (cursor <= endKey) { bucketSet.add(cursor); cursor += stepMs; }
+  }
+  const buckets = Array.from(bucketSet).sort((a,b)=>a-b);
+  const bucketIndex = {};
+  buckets.forEach((b,i)=>bucketIndex[b]=i);
+  const labels = buckets.map(b => uvBucketLabel(b, gran));
+
+  // Determine groups (lines). For BDE level use fixed order; else discovered + sorted.
+  let groups;
+  if (uvState.level === 'bde') {
+    groups = BDE_ORDER.slice(); // stable ordering; empty lines dropped later
+  } else {
+    const gset = new Set();
+    filtered.forEach(p => gset.add(groupOf(p)));
+    groups = Array.from(gset).sort((a,b) => {
+      // natural-ish sort (numbers in BN labels)
+      const na = parseInt(a.replace(/\D/g,''),10);
+      const nb = parseInt(b.replace(/\D/g,''),10);
+      if (!isNaN(na) && !isNaN(nb) && na!==nb) return na-nb;
+      return a.localeCompare(b);
+    });
+  }
+
+  // Build per-group counts per bucket
+  const seriesMap = {};
+  groups.forEach(g => seriesMap[g] = new Array(buckets.length).fill(0));
+  filtered.forEach(p => {
+    const g = groupOf(p);
+    if (!(g in seriesMap)) return;
+    const bi = bucketIndex[uvBucketKey(p.date, gran)];
+    if (bi !== undefined) seriesMap[g][bi]++;
+  });
+
+  // Drop all-zero groups (keeps legend clean), but keep at least nothing if empty
+  const activeGroups = groups.filter(g => seriesMap[g].some(v => v > 0));
+
+  // Build datasets
+  const datasets = activeGroups.map((g, i) => {
+    const color = UV_PALETTE[i % UV_PALETTE.length];
+    return {
+      label:           g,
+      data:            seriesMap[g],
+      borderColor:     color,
+      backgroundColor: color + '33',
+      tension:         0.25,
+      pointRadius:     buckets.length > 40 ? 0 : 3,
+      pointHoverRadius:5,
+      borderWidth:     2,
+      fill:            false,
+      // allow drill on click via group name
+      uvGroup:         g,
+    };
+  });
+
+  const granLabel = gran.charAt(0).toUpperCase()+gran.slice(1);
+
+  const ctx = document.getElementById('unitVolumeChart').getContext('2d');
+  charts.unitVolume = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      onClick: (evt, elements, chart) => {
+        // Click on a point drills down into that group (if not already at CO level)
+        if (uvState.level === 'co') return;
+        if (!elements || !elements.length) return;
+        const dsIdx = elements[0].datasetIndex;
+        const g = chart.data.datasets[dsIdx].uvGroup;
+        if (uvState.level === 'bde') {
+          uvGoBn(g);
+        } else if (uvState.level === 'bn') {
+          // g is "BN 795" -> extract number
+          const num = g.replace(/\D/g,'');
+          if (num) uvGoCo(num);
+        }
+      },
+      plugins: {
+        legend: { position: 'bottom' },
+        title: {
+          display: true,
+          text: `${uvState.level==='bde'?'Brigades':uvState.level==='bn'?('Battalions in '+uvState.bde):('Companies in BN '+uvState.bn)} — ${granLabel} buckets — ${spanDays} day window`
+        },
+        tooltip: {
+          callbacks: {
+            footer: () => uvState.level==='co' ? '' : 'Click a point to drill down',
+          }
+        }
+      },
+      scales: {
+        x: { title:{display:true,text:'Date'}, grid:{color:'#eee'}, ticks:{maxRotation:60,autoSkip:true,maxTicksLimit:24} },
+        y: { beginAtZero:true, title:{display:true,text:'ER Check-Ins'}, grid:{color:'#eee'}, ticks:{stepSize:1} }
+      }
+    }
+  });
+
+  document.getElementById('unitVolumeInsight').innerHTML =
+    generateUnitVolumeInsight(filtered, activeGroups, seriesMap, spanDays, gran, esi);
+}
+
+function generateUnitVolumeInsight(filtered, groups, seriesMap, spanDays, gran, esi) {
+  if (!filtered.length || !groups.length) {
+    return 'No trainee check-ins match the current filters. Try widening the date range or enabling more acuity buckets.';
+  }
+  const total = filtered.length;
+
+  // ESI filter description
+  const allOn = esi.red && esi.orange && esi.green && esi.unknown;
+  let esiDesc;
+  if (allOn) esiDesc = 'all acuities';
+  else {
+    const on = [];
+    if (esi.red) on.push('Cat 1');
+    if (esi.orange) on.push('Cat 2/3');
+    if (esi.green) on.push('Cat 4/5');
+    if (esi.unknown) on.push('Unknown');
+    esiDesc = on.length ? on.join(' + ') : 'no acuities (nothing selected)';
+  }
+
+  // Rank groups by total
+  const ranked = groups.map(g => ({
+    name: g,
+    total: seriesMap[g].reduce((a,b)=>a+b,0)
+  })).sort((a,b)=>b.total-a.total);
+
+  const levelWord = uvState.level==='bde' ? 'brigade' : uvState.level==='bn' ? 'battalion' : 'company';
+  const scopeWord = uvState.level==='bde' ? 'across all brigades'
+                   : uvState.level==='bn' ? `within ${uvState.bde}`
+                   : `within BN ${uvState.bn}`;
+
+  const top = ranked[0];
+  const topPct = Math.round((top.total/total)*100);
+
+  const topList = ranked.slice(0, Math.min(3, ranked.length))
+    .map(r => `<strong>${escapeHtml(r.name)}</strong> (${r.total}, ${Math.round((r.total/total)*100)}%)`)
+    .join(', ');
+
+  const s1 = `Over a <strong>${spanDays}-day</strong> window (${gran} buckets, ${esiDesc}), <strong>${total}</strong> timed ER check-ins ${scopeWord} are spread over <strong>${ranked.length} ${levelWord}${ranked.length>1?'s':''}</strong>. Top ${Math.min(3,ranked.length)}: ${topList}.`;
+
   let s2;
-  if (hhi > 0.25) {
-    s2 = `Volume is <strong>highly concentrated</strong> at the top — this warrants coordination with the leading battalion's chain of command to identify training, environmental, or unit-specific drivers.`;
-  } else if (hhi > 0.15) {
-    s2 = `Volume is <strong>moderately concentrated</strong> — worth monitoring whether the top utilizers continue to drive disproportionate share over the coming weeks.`;
+  if (uvState.level === 'co') {
+    s2 = `The leading company drives <strong>${topPct}%</strong> of this battalion's ER load in the window. Use the breadcrumb to step back up to battalion or brigade view.`;
   } else {
-    s2 = `Volume is <strong>relatively evenly distributed</strong> across battalions — no single unit is driving the overall trainee ER load.`;
+    s2 = `<strong>${escapeHtml(top.name)}</strong> leads with <strong>${topPct}%</strong> of the load — click its line in the chart to drill into the next level.`;
   }
-
   return s1 + ' ' + s2;
 }
 
@@ -1023,7 +1554,8 @@ function render(){
   renderTrendCharts();
   renderHourChart();
   renderDowChart();
-  renderBnCompanyChart();
+  uvBuildDateSlider();          // rebuild date slider from current data
+  renderUnitVolumeChart();      // new unit-volume line chart
   renderDailyTable();
   renderPatientTable();
 }
@@ -1276,86 +1808,6 @@ function renderDowChart(){
   document.getElementById('dowInsight').innerHTML = generateDowInsight(allPatients);
 }
 
-/* ==========================================================
-   BATTALION CHART — CHANGE 1
-   Enhanced tooltip with battalion total, % of all, and Cat 4/5 count.
-   ========================================================== */
-function renderBnCompanyChart(){
-  destroyChart('bnCompany');
-
-  // Last 7 days only
-  const cutoff = allData.length > 0
-    ? new Date(allData[allData.length-1].date.getTime() - 6*24*60*60*1000)
-    : new Date(0);
-  const patients7 = allPatients.filter(p => p.date && p.date >= cutoff);
-
-  // Build per-battalion company breakdown
-  const matrix={};const companySet=new Set();
-  patients7.forEach(p=>{
-    if(!p.battalion||!p.company)return;
-    if(!matrix[p.battalion])matrix[p.battalion]={};
-    matrix[p.battalion][p.company]=(matrix[p.battalion][p.company]||0)+1;
-    companySet.add(p.company);
-  });
-  const battalions=Object.keys(matrix).sort();
-  const companies=Array.from(companySet).sort();
-
-  // ── CHANGE 1: Precompute per-battalion metadata for tooltip ──
-  const totalAll = patients7.filter(p => p.battalion).length;
-  const bnMeta = {};
-  battalions.forEach(bn => {
-    const bnPatients = patients7.filter(p => p.battalion === bn);
-    bnMeta[bn] = {
-      total:    bnPatients.length,
-      cat45:    bnPatients.filter(p => p.acuity === 'green').length,
-      pctOfAll: totalAll > 0 ? ((bnPatients.length / totalAll) * 100).toFixed(1) : '0.0',
-    };
-  });
-
-  const palette=['#4b5320','#FFCC01','#c1272d','#2e8b2e','#e69500','#3d6e9c','#7d3c98','#16a085','#d35400','#5d4037','#1abc9c','#8e44ad','#2c3e50','#e74c3c','#f1c40f'];
-  const datasets=companies.map((co,i)=>({
-    label:'Co '+co,
-    data:battalions.map(bn=>matrix[bn][co]||0),
-    backgroundColor:palette[i%palette.length],
-    borderColor:'#fff',borderWidth:1
-  }));
-
-  charts.bnCompany=new Chart(document.getElementById('bnCompanyChart').getContext('2d'),{
-    type:'bar',data:{labels:battalions,datasets},
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{
-        legend:{position:'bottom'},
-        tooltip:{
-          callbacks:{
-            // ── CHANGE 1: Inject battalion summary stats after company breakdown ──
-            afterBody: (items) => {
-              if (!items || !items.length) return '';
-              const bn = items[0].label;
-              const meta = bnMeta[bn];
-              if (!meta) return '';
-              return [
-                '',
-                '──────────────',
-                `Battalion total: ${meta.total} visits`,
-                `% of all trainees: ${meta.pctOfAll}%`,
-                `Cat 4/5 visits: ${meta.cat45}`,
-              ];
-            }
-          }
-        },
-        title:{display:true,text:'Last 7 Days — each bar = one Battalion; segments = Companies within that Battalion'}
-      },
-      scales:{
-        x:{stacked:true,title:{display:true,text:'Battalion'}},
-        y:{stacked:true,beginAtZero:true,ticks:{stepSize:1},title:{display:true,text:'Trainee Visits'}}
-      }
-    }
-  });
-
-  document.getElementById('bnInsight').innerHTML = generateBnInsight(patients7);
-}
-
 function renderDailyTable(){
   document.getElementById('dailyTableBody').innerHTML=allData.map(d=>`
     <tr>
@@ -1380,7 +1832,7 @@ function renderPatientTable(){
   document.getElementById('patientTableBody').innerHTML=sorted.map(p=>`
     <tr style="background:${colorMap[p.acuity]||'#fff'}">
       <td>${fmtDate(p.date)}</td><td>${p.timeStr}</td><td>${p.name}</td>
-      <td>${p.company}</td><td>${p.battalion}</td>
+      <td>${p.company}</td><td>${p.battalion}</td><td>${p.bde||''}</td>
       <td>${labelMap[p.acuity]||'Unknown'}</td>
       <td><span class="swatch" style="background:#${p.fillHex||'ffffff'}"></span>${p.fillHex?'#'+p.fillHex:'(none)'}</td>
     </tr>`).join('');
@@ -1390,6 +1842,7 @@ function clearAll(){
   allData=[];allPatients=[];
   Object.keys(charts).forEach(destroyChart);
   fi.value='';debugLines=[];
+  uvState.level='bde'; uvState.bde=null; uvState.bn=null;
   document.getElementById('debugPanel').innerHTML='<span class="debug-empty">No files parsed yet. Drop a file above to see parsing details.</span>';
   render();
 }
@@ -1400,10 +1853,10 @@ function exportCSV(){
   allData.forEach(d=>{
     csv+=[fmtDate(d.date),d.sheetUsed,d.census,d.trainees,d.medscreen,d.lwobs,d.ama,d.transfer,d.admitted,d.ambulance,d.cat1,d.cat23,d.cat45,d.unknown].join(',')+'\n';
   });
-  csv+='\n\nDate,CheckInTime,Name,Company,Battalion,Acuity,FillHex\n';
+  csv+='\n\nDate,CheckInTime,Name,Company,Battalion,BDE,Acuity,FillHex\n';
   allPatients.forEach(p=>{
     const lab={red:'Cat1',orange:'Cat2_3',green:'Cat4_5',unknown:'Unknown'}[p.acuity]||'Unknown';
-    csv+=[fmtDate(p.date),'"'+p.timeStr+'"','"'+p.name+'"',p.company,p.battalion,lab,p.fillHex].join(',')+'\n';
+    csv+=[fmtDate(p.date),'"'+p.timeStr+'"','"'+p.name+'"',p.company,p.battalion,'"'+(p.bde||'')+'"',lab,p.fillHex].join(',')+'\n';
   });
   const blob=new Blob([csv],{type:'text/csv'});
   const a=document.createElement('a');
@@ -1411,6 +1864,9 @@ function exportCSV(){
   a.download='glwach_er_export.csv';
   a.click();
 }
+
+/* ---- One-time wiring ---- */
+uvWireSlider();
 </script>
 </body>
 </html>
