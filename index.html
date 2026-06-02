@@ -41,6 +41,29 @@
   canvas { max-height: 400px; }
   .swatch { display: inline-block; width: 12px; height: 12px; border: 1px solid #888; vertical-align: middle; margin-right: 4px; }
 
+  /* Badges for ER Usage & Impact */
+  .badge {
+    display: inline-block;
+    padding: 3px 6px;
+    font-size: 10px;
+    font-weight: bold;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+  }
+  .badge-emergent { background: #fde0e0; color: #c1272d; border: 1px solid #f5baba; }
+  .badge-urgent { background: #ffe7c2; color: #b86000; border: 1px solid #ffd091; }
+  .badge-inappropriate-low { background: #e2f3df; color: #2e8b2e; border: 1px solid #c2e6be; }
+  .badge-inappropriate-high { background: #f2dede; color: #a94442; border: 1px solid #ebccd1; animation: pulse-border 2s infinite; }
+  .badge-unknown { background: #eee; color: #777; border: 1px solid #ccc; }
+
+  @keyframes pulse-border {
+    0% { border-color: #ebccd1; box-shadow: 0 0 0 0 rgba(169, 68, 66, 0.4); }
+    70% { border-color: #a94442; box-shadow: 0 0 0 3px rgba(169, 68, 66, 0); }
+    100% { border-color: #ebccd1; box-shadow: 0 0 0 0 rgba(169, 68, 66, 0); }
+  }
+
   /* Trend controls */
   .trend-controls {
     display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
@@ -295,7 +318,7 @@
           <thead>
             <tr>
               <th>Date</th><th>Hour Block</th><th>Trainees Dropped Off</th>
-              <th>Company</th><th>Battalion</th><th>BDE</th><th>Acuity</th><th>Fill (hex)</th>
+              <th>Company</th><th>Battalion</th><th>BDE</th><th>Acuity</th><th>ER Usage & Impact</th>
             </tr>
           </thead>
           <tbody id="patientTableBody"></tbody>
@@ -1896,6 +1919,34 @@ function renderDailyTable(){
     </tr>`).join('');
 }
 
+function getERUsageLabel(acuity, count) {
+  const c = count || 1;
+  if (acuity === 'red') {
+    return '<span class="badge badge-emergent">Appropriate (Emergent)</span>';
+  }
+  if (acuity === 'orange') {
+    return '<span class="badge badge-urgent">Appropriate (Urgent)</span>';
+  }
+  if (acuity === 'green') {
+    if (c >= 3) {
+      return '<span class="badge badge-inappropriate-high">Inappropriate (High ER Throughput Impact)</span>';
+    }
+    return '<span class="badge badge-inappropriate-low">Inappropriate (Low Acuity)</span>';
+  }
+  return '<span class="badge badge-unknown">Unknown</span>';
+}
+
+function getERUsageText(acuity, count) {
+  const c = count || 1;
+  if (acuity === 'red') return 'Appropriate (Emergent)';
+  if (acuity === 'orange') return 'Appropriate (Urgent)';
+  if (acuity === 'green') {
+    if (c >= 3) return 'Inappropriate (High ER Throughput Impact)';
+    return 'Inappropriate (Low Acuity)';
+  }
+  return 'Unknown';
+}
+
 function renderPatientTable(){
   const colorMap={red:'#fde0e0',orange:'#ffe7c2',green:'#dff5d8',unknown:'#f0f0f0'};
   const labelMap={red:'Cat 1 🔴',orange:'Cat 2/3 🟠',green:'Cat 4/5 🟢',unknown:'Unknown ⚪'};
@@ -1909,7 +1960,7 @@ function renderPatientTable(){
       <td>${fmtDate(p.date)}</td><td>${p.timeStr}</td><td style="font-weight:bold">${p.count||1}</td>
       <td>${p.company}</td><td>${p.battalion}</td><td>${p.bde||''}</td>
       <td>${labelMap[p.acuity]||'Unknown'}</td>
-      <td><span class="swatch" style="background:#${p.fillHex||'ffffff'}"></span>${p.fillHex?'#'+p.fillHex:'(none)'}</td>
+      <td>${getERUsageLabel(p.acuity, p.count)}</td>
     </tr>`).join('');
 }
 
@@ -1928,10 +1979,10 @@ function exportCSV(){
   allData.forEach(d=>{
     csv+=[fmtDate(d.date),d.sheetUsed,d.census,d.trainees,d.medscreen,d.lwobs,d.ama,d.transfer,d.admitted,d.ambulance,d.cat1,d.cat23,d.cat45,d.unknown].join(',')+'\n';
   });
-  csv+='\n\nDate,TimeBlock,TraineeCount,Company,Battalion,BDE,Acuity,FillHex\n';
+  csv+='\n\nDate,TimeBlock,TraineeCount,Company,Battalion,BDE,Acuity,ERUsageImpact\n';
   allPatients.forEach(p=>{
     const lab={red:'Cat1',orange:'Cat2_3',green:'Cat4_5',unknown:'Unknown'}[p.acuity]||'Unknown';
-    csv+=[fmtDate(p.date),'"'+p.timeStr+'"',p.count||1,p.company,p.battalion,'"'+(p.bde||'')+'"',lab,p.fillHex].join(',')+'\n';
+    csv+=[fmtDate(p.date),'"'+p.timeStr+'"',p.count||1,p.company,p.battalion,'"'+(p.bde||'')+'"',lab,'"'+getERUsageText(p.acuity,p.count)+'"'].join(',')+'\n';
   });
   const blob=new Blob([csv],{type:'text/csv'});
   const a=document.createElement('a');
