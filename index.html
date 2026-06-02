@@ -921,17 +921,10 @@ function parseSheet(best,date,filename){
     let acuity=classifyHex(fillHex);
     if(!acuity)acuity='unknown';
 
-    let cleanName = nameCell.str.trim();
-    let mClean = cleanName.match(COMPANY_BN_REGEX);
-    if (mClean) {
-      cleanName = cleanName.replace(mClean[0], '').trim();
-    } else {
-      mClean = cleanName.match(BN_ONLY_REGEX);
-      if (mClean) {
-        cleanName = cleanName.replace(mClean[0], '').trim();
-      }
-    }
-    cleanName = cleanName.replace(/\s+/g, ' ');
+    const nameParts = nameCell.str.split(',');
+    const lastInitial = nameParts[0].trim().charAt(0).toUpperCase();
+    const firstInitial = nameParts[1] ? nameParts[1].trim().charAt(0).toUpperCase() : '';
+    const cleanName = lastInitial + firstInitial + company + battalion;
     const displayTime=timeParsed?timeToStr(timeParsed):(timeCell.str||'');
 
     patients.push({timeStr:displayTime,time:timeParsed,name:cleanName,company,battalion,bde,acuity,fillHex:fillHex||''});
