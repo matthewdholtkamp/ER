@@ -6,6 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="jszip.min.js"></script>
 <script src="chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Arial, Helvetica, sans-serif; background: #f4f4f4; color: #1a1a1a; line-height: 1.4; }
@@ -355,6 +357,10 @@ let allData     = [];
 let allPatients = [];
 let charts      = {};
 let debugLines  = [];
+
+let db = null;
+let syncEnabled = false;
+let unsubscribe = null;
 
 /* ---- Debug helpers ---- */
 function dbg(msg, type) {
@@ -799,6 +805,9 @@ async function handleFiles(files) {
     }
   }
   render();
+  if (syncEnabled) {
+    await uploadToFirestore();
+  }
 }
 
 /* ---- Sheet scoring ---- */
@@ -1964,13 +1973,43 @@ function renderPatientTable(){
     </tr>`).join('');
 }
 
-function clearAll(){
-  allData=[];allPatients=[];
+async function clearAll() {
+  const confirmed = confirm("WARNING: This will permanently clear all ER data for ALL users on this website. Are you sure you want to proceed?");
+  if (!confirmed) return;
+
+  allData = [];
+  allPatients = [];
   Object.keys(charts).forEach(destroyChart);
-  fi.value='';debugLines=[];
-  uvState.level='bde'; uvState.bde=null; uvState.bn=null;
-  document.getElementById('debugPanel').innerHTML='<span class="debug-empty">No files parsed yet. Drop a file above to see parsing details.</span>';
+  fi.value = '';
+  debugLines = [];
+  uvState.level = 'bde';
+  uvState.bde = null;
+  uvState.bn = null;
+  document.getElementById('debugPanel').innerHTML = '<span class="debug-empty">No files parsed yet. Drop a file above to see parsing details.</span>';
+  
+  // Clear local cache
+  try {
+    localStorage.removeItem('dccs-er-data');
+  } catch (e) {
+    console.warn("Failed to remove local cache:", e);
+  }
+
   render();
+
+  if (syncEnabled && db) {
+    try {
+      const payload = {
+        allData: [],
+        allPatients: [],
+        _lastUpdated: Date.now()
+      };
+      await db.collection("dccs_data").doc("er_data").set(payload);
+      dbg("Database successfully cleared online for all users.", "ok");
+    } catch (e) {
+      console.error("Failed to clear database online:", e);
+      dbg("Failed to clear database online. Check internet connection.", "err");
+    }
+  }
 }
 
 function exportCSV(){
@@ -1991,7 +2030,30 @@ function exportCSV(){
   a.click();
 }
 
-async function loadPersistentData() {
+function initFirebase() {
+  try {
+    const firebaseConfig = {
+      projectId: "glwch-dccs-2027",
+      appId: "1:1022797767837:web:5d3bb4d314efe49c216074",
+      storageBucket: "glwch-dccs-2027.firebasestorage.app",
+      apiKey: "AIzaSyAmhmP4ZKYASr37vAFC0ziSyXvicb6Dg78",
+      authDomain: "glwch-dccs-2027.firebaseapp.com",
+      messagingSenderId: "1022797767837"
+    };
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    db.enablePersistence().catch((err) => {
+      console.warn("Firestore persistence failed to enable:", err.code);
+    });
+    syncEnabled = true;
+    dbg("Firebase initialized successfully for ER Dashboard.", "ok");
+  } catch (e) {
+    console.warn("Firebase failed to initialize. Falling back to local storage.", e);
+    syncEnabled = false;
+  }
+}
+
+async function loadFromDataJson() {
   try {
     const response = await fetch('data.json');
     if (response.ok) {
@@ -1999,13 +2061,115 @@ async function loadPersistentData() {
       if (data && data.allData && data.allPatients) {
         allData = data.allData.map(d => ({ ...d, date: new Date(d.date) }));
         allPatients = data.allPatients.map(p => ({ ...p, date: p.date ? new Date(p.date) : null }));
-        dbg(`Loaded ${allData.length} days of persistent data from data.json`, 'ok');
+        dbg(`Loaded ${allData.length} days of baseline data from data.json`, 'ok');
         render();
       }
     }
   } catch (err) {
-    dbg('No persistent data loaded from data.json: ' + err.message, 'info');
+    dbg('No baseline data found in data.json: ' + err.message, 'info');
   }
+}
+
+async function uploadToFirestore() {
+  if (!syncEnabled || !db) return;
+  try {
+    const serializedData = allData.map(d => ({
+      ...d,
+      date: d.date instanceof Date ? d.date.toISOString() : d.date
+    }));
+    const serializedPatients = allPatients.map(p => ({
+      ...p,
+      date: p.date instanceof Date ? p.date.toISOString() : p.date
+    }));
+
+    const payload = {
+      allData: serializedData,
+      allPatients: serializedPatients,
+      _lastUpdated: Date.now()
+    };
+
+    // Save to local cache first
+    try {
+      localStorage.setItem('dccs-er-data', JSON.stringify(payload));
+    } catch (e) {
+      console.warn("Failed to write local cache:", e);
+    }
+
+    await db.collection("dccs_data").doc("er_data").set(payload);
+    dbg("Data successfully uploaded to Firestore online database.", "ok");
+  } catch (e) {
+    console.error("Failed to upload data to Firestore:", e);
+    dbg("Upload to online database failed. Check internet connection.", "err");
+  }
+}
+
+async function loadPersistentData() {
+  // 1. Load local cache first so it's instant
+  let hasLocalData = false;
+  try {
+    const cached = localStorage.getItem('dccs-er-data');
+    if (cached) {
+      const data = JSON.parse(cached);
+      if (data && Array.isArray(data.allData)) {
+        allData = data.allData.map(d => ({ ...d, date: new Date(d.date) }));
+        allPatients = data.allPatients.map(p => ({ ...p, date: p.date ? new Date(p.date) : null }));
+        dbg(`Loaded ${allData.length} days of data from local cache`, 'ok');
+        render();
+        hasLocalData = true;
+      }
+    }
+  } catch (e) {
+    console.warn("Error loading local storage cache:", e);
+  }
+
+  if (!syncEnabled || !db) {
+    if (!hasLocalData) {
+      await loadFromDataJson();
+    }
+    return;
+  }
+
+  // Subscribe to real-time updates from Firestore
+  unsubscribe = db.collection("dccs_data").doc("er_data").onSnapshot(async (doc) => {
+    if (doc.metadata.hasPendingWrites) {
+      return;
+    }
+
+    if (doc.exists) {
+      const serverData = doc.data() || {};
+      if (Array.isArray(serverData.allData)) {
+        allData = serverData.allData.map(d => ({ ...d, date: new Date(d.date) }));
+        allPatients = serverData.allPatients.map(p => ({ ...p, date: p.date ? new Date(p.date) : null }));
+        
+        try {
+          localStorage.setItem('dccs-er-data', JSON.stringify({
+            allData: serverData.allData,
+            allPatients: serverData.allPatients,
+            _lastUpdated: serverData._lastUpdated || Date.now()
+          }));
+        } catch (e) {
+          console.warn("Failed to write local cache:", e);
+        }
+
+        dbg(`Synced ${allData.length} days of data from Firestore`, 'ok');
+        render();
+      }
+    } else {
+      dbg("Firestore document 'er_data' not found. Seeding database...", "warn");
+      if (!hasLocalData) {
+        await loadFromDataJson();
+      }
+      if (allData.length > 0) {
+        await uploadToFirestore();
+      }
+    }
+  }, (error) => {
+    console.error("Firestore sync subscription failed:", error);
+    dbg("Firestore connection lost. Operating in local mode.", "warn");
+    if (!hasLocalData && allData.length === 0) {
+      loadFromDataJson();
+    }
+  });
 }
 
 function downloadDataJSON() {
@@ -2023,6 +2187,7 @@ function downloadDataJSON() {
 
 /* ---- One-time wiring ---- */
 uvWireSlider();
+initFirebase();
 loadPersistentData();
 </script>
 </body>
