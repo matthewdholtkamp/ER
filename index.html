@@ -440,34 +440,63 @@ const PHONETIC_CO = {
   FOX:'F', FOXTROT:'F', GOLF:'G', HOTEL:'H',
 };
 
-/* Pull a company letter from a token like "B795", "Fox310", "Alpha" */
-function extractCompany(token) {
-  if (!token) return '';
-  const t = String(token).trim();
-  // Phonetic prefix (Fox310, Bravo, Foxtrot31...)
-  const phon = t.match(/^(alpha|bravo|charlie|delta|echo|foxtrot|fox|golf|hotel)/i);
-  if (phon) {
-    const key = phon[1].toUpperCase();
-    if (PHONETIC_CO[key]) return PHONETIC_CO[key];
+const PHON_PAT = 'alpha|bravo|charlie|delta|echo|foxtrot|fox|golf|hotel|india|juliet|kilo|lima|mike|november|oscar|papa|quebec|romeo|sierra|tango|uniform|victor|whiskey|xray|yankee|zulu';
+const COMPANY_BN_REGEX = new RegExp('\\b(' + PHON_PAT + '|[a-z])[\\s\\/\\-–]?(\\d{1,4}(?:[\\/\\-–]\\d{1,4})?|\\d{1,4}(?:st|nd|rd|th)?)(?:\\s*(?:trans|chem|t|c|s|t\\b))?\\b', 'i');
+const BN_ONLY_REGEX = new RegExp('\\b(\\d{1,4}(?:[\\/\\-–]\\d{1,4})?|ftu|rhu|tu)(?:\\s*(?:trans|chem|t|c|s))?\\b', 'i');
+
+function cleanBattalionNumber(bnStr) {
+  const bnLower = String(bnStr).toLowerCase();
+  
+  // 58th BN rule: anything with 58 or 558 in it maps to '58'
+  if (bnLower.includes('58')) {
+    return '58';
   }
-  // Single leading letter immediately followed by a digit or slash (B795, F1/48)
-  const lead = t.match(/^([A-Za-z])(?=\s*[\d\/\-])/);
-  if (lead) return lead[1].toUpperCase();
-  return '';
+  // 1/48 -> 148
+  if (bnLower.includes('1/48') || bnLower.includes('1-48') || bnLower.includes('1–48') || bnLower.includes('148')) {
+    return '148';
+  }
+  // 2/10 -> 210
+  if (bnLower.includes('2/10') || bnLower.includes('2-10') || bnLower.includes('210')) {
+    return '210';
+  }
+  // 3/10 -> 310
+  if (bnLower.includes('3/10') || bnLower.includes('3-10') || bnLower.includes('310')) {
+    return '310';
+  }
+  
+  const upper = bnLower.toUpperCase();
+  if (upper === 'FTU' || upper === 'RHU' || upper === 'TU') {
+    return upper;
+  }
+  
+  return bnLower.replace(/\D/g, '');
 }
 
-/* Pull a canonical battalion number from a token. Returns '' if none. */
-function extractBattalionNumber(token) {
-  if (!token) return '';
-  const t = String(token).trim();
-  // "43rd" written out
-  if (/^43rd\b/i.test(t)) return '43';
-  // Strip any leading phonetic/single-letter company prefix, then grab digits
-  let rest = t.replace(/^(alpha|bravo|charlie|delta|echo|foxtrot|fox|golf|hotel)/i, '');
-  rest = rest.replace(/^[A-Za-z]\s*/, ''); // single leading company letter
-  // Now collapse all non-digits (handles 2-10, 1/48, etc.)
-  const digits = rest.replace(/\D/g, '');
-  return digits;
+function parseUnitString(text) {
+  if (!text) return null;
+  const t = String(text).trim();
+  
+  // Company + Battalion pattern
+  let m = t.match(COMPANY_BN_REGEX);
+  if (m) {
+    const coRaw = m[1].toUpperCase();
+    const bnRaw = m[2];
+    let co = PHONETIC_CO[coRaw] || coRaw;
+    if (co.length > 1) co = co[0]; // fallback
+    
+    const bn = cleanBattalionNumber(bnRaw);
+    return { company: co, battalion: bn };
+  }
+  
+  // Battalion/Code only pattern
+  m = t.match(BN_ONLY_REGEX);
+  if (m) {
+    const bnRaw = m[1];
+    const bn = cleanBattalionNumber(bnRaw);
+    return { company: "", battalion: bn };
+  }
+  
+  return null;
 }
 
 /* Master normalizer. Returns { company, battalion, bde, raw }. */
@@ -475,10 +504,9 @@ function normalizeUnit(rawText) {
   const raw = rawText ? String(rawText).trim() : '';
   if (!raw) return { company:'', battalion:'', bde:BDE_OTHER, raw:'' };
 
-  // Take the first whitespace-separated token that looks unit-like; otherwise whole string.
-  // Support strings often have a slash (Motor T, VA Sharing, /XRAY) -> Other Units.
-  const company   = extractCompany(raw);
-  const battalion = extractBattalionNumber(raw);
+  const parsed = parseUnitString(raw);
+  const company = parsed ? parsed.company : '';
+  const battalion = parsed ? parsed.battalion : '';
 
   let bde;
   if (battalion && BN_TO_BDE[battalion]) {
@@ -487,17 +515,7 @@ function normalizeUnit(rawText) {
     bde = BDE_OTHER;
   }
 
-  // If it mapped to Other Units, we still keep whatever battalion text we found
-  // (may be empty) so the patient is counted in Other Units.
   return { company, battalion: (BN_TO_BDE[battalion] ? battalion : (battalion || '')), bde, raw };
-}
-
-const UNIT_REGEX = /^([A-Za-z])[\/\-]?(\d{2,4}|FTU|TU|RHU)$/i;
-function parseUnit(text) {
-  if (!text) return null;
-  const m = String(text).trim().match(UNIT_REGEX);
-  if (!m) return null;
-  return { company: m[1].toUpperCase(), battalion: m[2].toUpperCase() };
 }
 const NAME_REGEX = /^[A-Za-z][A-Za-z'\-\.\s]*,\s*[A-Za-z]/;
 function looksLikeName(s) {
@@ -823,27 +841,26 @@ function extractMetric(grid,labelRegex,maxRow,maxCol){
    Handles: unit AFTER name (separate cell), unit glued/leading in name cell
    (e.g. "a43swendsen,kd"), and phonetic/written forms. */
 function deriveUnitString(nameStr, unitCellStr) {
-  // 1) Dedicated unit cell wins if it yields a known battalion or any unit-ish text.
+  // 1) Try to extract unit from the Name Cell first since it's the primary storage
+  const parsedName = parseUnitString(nameStr);
+  if (parsedName && (parsedName.company || parsedName.battalion)) {
+    return nameStr;
+  }
+  
+  // 2) If not in name, check if unitCellStr is non-empty and not junk
   if (unitCellStr) {
-    const u = normalizeUnit(unitCellStr);
-    if (u.battalion || u.company || /[A-Za-z]/.test(unitCellStr)) return unitCellStr;
+    const unitLower = String(unitCellStr).toLowerCase();
+    const junkWords = ['restraints', "con't", 'schoolhouse', 'tracking', 'interest'];
+    const isJunk = junkWords.some(jw => unitLower.includes(jw)) || unitCellStr.includes(',');
+    if (!isJunk) {
+      const parsedCell = parseUnitString(unitCellStr);
+      if (parsedCell && (parsedCell.company || parsedCell.battalion)) {
+        return unitCellStr;
+      }
+    }
   }
-  // 2) Unit may be glued to the FRONT of the name: "a43swendsen,kd" or "Fox310 garcia"
-  const front = nameStr.match(/^((?:alpha|bravo|charlie|delta|echo|foxtrot|fox|golf|hotel)\s*\d{1,4}|[A-Za-z]\s*\d{1,4}|43rd|\d{1,4}(?:st|nd|rd|th)?)/i);
-  if (front) {
-    const cand = front[1];
-    const u = normalizeUnit(cand);
-    if (u.battalion) return cand;
-  }
-  // 3) Unit may be the LAST token of the name: "Henderson,J B787"
-  const parts = nameStr.split(/\s+/);
-  if (parts.length >= 2) {
-    const last = parts[parts.length-1];
-    const u = normalizeUnit(last);
-    if (u.battalion) return last;
-  }
-  // 4) Fallback: whatever the unit cell had (may be empty -> Other Units)
-  return unitCellStr || '';
+  
+  return '';
 }
 
 function parseSheet(best,date,filename){
@@ -915,7 +932,17 @@ function parseSheet(best,date,filename){
     let acuity=classifyHex(fillHex);
     if(!acuity)acuity='unknown';
 
-    const cleanName=nameCell.str.replace(/\s+[A-Za-z][\/\-]?\d{2,4}\s*$/,'').trim();
+    let cleanName = nameCell.str.trim();
+    let mClean = cleanName.match(COMPANY_BN_REGEX);
+    if (mClean) {
+      cleanName = cleanName.replace(mClean[0], '').trim();
+    } else {
+      mClean = cleanName.match(BN_ONLY_REGEX);
+      if (mClean) {
+        cleanName = cleanName.replace(mClean[0], '').trim();
+      }
+    }
+    cleanName = cleanName.replace(/\s+/g, ' ');
     const displayTime=timeParsed?timeToStr(timeParsed):(timeCell.str||'');
 
     patients.push({timeStr:displayTime,time:timeParsed,name:cleanName,company,battalion,bde,acuity,fillHex:fillHex||''});
