@@ -293,7 +293,7 @@
         <table id="patientTable">
           <thead>
             <tr>
-              <th>Date</th><th>Check-in Time</th><th>Name</th>
+              <th>Date</th><th>Hour Block</th><th>Trainees Dropped Off</th>
               <th>Company</th><th>Battalion</th><th>BDE</th><th>Acuity</th><th>Fill (hex)</th>
             </tr>
           </thead>
@@ -907,7 +907,7 @@ function parseSheet(best,date,filename){
     if(!timeParsed||!hasName){
       consecutiveEmpty++;
       if(consecutiveEmpty>12)break;
-      continue;
+    continue;
     }
     consecutiveEmpty=0;
 
@@ -922,28 +922,39 @@ function parseSheet(best,date,filename){
     let acuity=classifyHex(fillHex);
     if(!acuity)acuity='unknown';
 
-    const nameParts = nameCell.str.split(',');
-    const lastInitial = nameParts[0].trim().charAt(0).toUpperCase();
-    const firstInitial = nameParts[1] ? nameParts[1].trim().charAt(0).toUpperCase() : '';
-    const cleanName = lastInitial + firstInitial + company + battalion;
-    const displayTime=timeParsed?timeToStr(timeParsed):(timeCell.str||'');
+    // Highlight unit anomalies in the debug log for the user to troubleshoot
+    if (bde === 'Other Units') {
+      dbg(`    ⚠ Parsing Anomaly: Trainee "${escapeHtml(nameCell.str)}" resolved to "Other Units" (Raw unit cell: "${escapeHtml(unitCell ? unitCell.str : '')}")`, 'warn');
+    }
 
-    patients.push({timeStr:displayTime,time:timeParsed,name:cleanName,company,battalion,bde,acuity,fillHex:fillHex||''});
+    const displayTime=timeParsed?timeToStr(timeParsed):(timeCell.str||'');
+    patients.push({
+      timeStr: displayTime,
+      time: timeParsed,
+      rawName: nameCell.str, // keep raw name temporarily for browser debug logs only
+      company,
+      battalion,
+      bde,
+      acuity,
+      fillHex: fillHex||''
+    });
   }
 
-  dbg('  ── Patients ──','info');
+  // Temporary browser-only logging for the user to verify imports
+  dbg('  ── Trainees Loaded (Raw Names) ──','info');
   patients.forEach((p,idx)=>{
     const sw=p.fillHex
       ?`<span class="swatch" style="background:#${p.fillHex}"></span>#${p.fillHex}`
       :'<span class="swatch" style="background:#fff"></span>(no fill)';
     const cls=p.acuity==='unknown'?'warn':'info';
     const unitLabel=(p.company||'?')+(p.battalion||'?')+' ['+p.bde+']';
-    dbg('    P'+(idx+1).toString().padStart(2,'0')+': '+
+    dbg('    T'+(idx+1).toString().padStart(2,'0')+': '+
         escapeHtml(p.timeStr.padEnd(10))+'  '+
-        escapeHtml((p.name+' '+unitLabel).padEnd(40))+'  '+
+        escapeHtml((p.rawName+' '+unitLabel).padEnd(45))+'  '+
         sw+' → <b>'+p.acuity+'</b>',cls);
   });
 
+  // Calculate daily tallies using raw trainee list
   let cat1=0,cat23=0,cat45=0,unknown=0;
   patients.forEach(p=>{
     if(p.acuity==='red')cat1++;
@@ -952,7 +963,50 @@ function parseSheet(best,date,filename){
     else unknown++;
   });
 
-  return{filename,date,sheetUsed:sheetName,...metrics,trainees:patients.length,cat1,cat23,cat45,unknown,patients};
+  // Aggregate patients into hourly groups for public database compliance
+  const groupedMap = {};
+  patients.forEach(p => {
+    const hr = p.time ? p.time.hour : 0;
+    const ampm = hr >= 12 ? 'PM' : 'AM';
+    const h12 = hr % 12 === 0 ? 12 : hr % 12;
+    const next_h12 = (hr + 1) % 12 === 0 ? 12 : (hr + 1) % 12;
+    const next_ampm = (hr + 1) >= 12 && (hr + 1) < 24 || (hr + 1) === 12 ? 'PM' : 'AM';
+    let timeStr;
+    if (hr === 23) {
+      timeStr = "11:00 PM - 12:00 AM";
+    } else {
+      timeStr = `${h12}:00 ${ampm} - ${next_h12}:00 ${next_ampm}`;
+    }
+    
+    const key = `${hr}-${p.company}-${p.battalion}-${p.bde}-${p.acuity}-${p.fillHex}`;
+    if (!groupedMap[key]) {
+      groupedMap[key] = {
+        timeStr: timeStr,
+        time: { hour: hr, minute: 0 },
+        company: p.company,
+        battalion: p.battalion,
+        bde: p.bde,
+        acuity: p.acuity,
+        fillHex: p.fillHex,
+        count: 0
+      };
+    }
+    groupedMap[key].count++;
+  });
+  const groupedPatients = Object.values(groupedMap);
+
+  return {
+    filename,
+    date,
+    sheetUsed: sheetName,
+    ...metrics,
+    trainees: patients.length,
+    cat1,
+    cat23,
+    cat45,
+    unknown,
+    patients: groupedPatients
+  };
 }
 
 /* ==========================================================
@@ -1053,12 +1107,12 @@ function generateHourInsight(patients) {
   if (!patients || !patients.length) return 'No patient data loaded.';
 
   const cat45 = patients.filter(p => p.acuity === 'green' && p.time);
-  const total = cat45.length;
+  const total = cat45.reduce((sum, p) => sum + (p.count || 1), 0);
 
   if (total === 0) return 'No Cat 4/5 (low-acuity) trainee visits in the loaded data.';
 
   const counts = new Array(24).fill(0);
-  cat45.forEach(p => { counts[p.time.hour]++; });
+  cat45.forEach(p => { counts[p.time.hour] += (p.count || 1); });
 
   const peakHr = counts.indexOf(Math.max(...counts));
   const peakCount = counts[peakHr];
@@ -1108,12 +1162,12 @@ function generateDowInsight(patients) {
   if (!patients || !patients.length) return 'No patient data loaded.';
 
   const dated = patients.filter(p => p.date);
-  const total = dated.length;
+  const total = dated.reduce((sum, p) => sum + (p.count || 1), 0);
   if (total === 0) return 'No dated trainee visits in loaded data.';
 
   const names = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const counts = new Array(7).fill(0);
-  dated.forEach(p => { counts[p.date.getDay()]++; });
+  dated.forEach(p => { counts[p.date.getDay()] += (p.count || 1); });
 
   const occurrenceDates = [new Set(),new Set(),new Set(),new Set(),new Set(),new Set(),new Set()];
   dated.forEach(p => {
@@ -1425,7 +1479,7 @@ function renderUnitVolumeChart() {
     const g = groupOf(p);
     if (!(g in seriesMap)) return;
     const bi = bucketIndex[uvBucketKey(p.date, gran)];
-    if (bi !== undefined) seriesMap[g][bi]++;
+    if (bi !== undefined) seriesMap[g][bi] += (p.count || 1);
   });
 
   // Drop all-zero groups (keeps legend clean), but keep at least nothing if empty
@@ -1500,7 +1554,7 @@ function generateUnitVolumeInsight(filtered, groups, seriesMap, spanDays, gran, 
   if (!filtered.length || !groups.length) {
     return 'No trainee check-ins match the current filters. Try widening the date range or enabling more acuity buckets.';
   }
-  const total = filtered.length;
+  const total = filtered.reduce((sum, p) => sum + (p.count || 1), 0);
 
   // ESI filter description
   const allOn = esi.red && esi.orange && esi.green && esi.unknown;
@@ -1791,7 +1845,12 @@ function renderLast30Chart(){
 function renderHourChart(){
   destroyChart('hour');
   const totals=new Array(24).fill(0),low=new Array(24).fill(0);
-  allPatients.forEach(p=>{if(!p.time)return;totals[p.time.hour]++;if(p.acuity==='green')low[p.time.hour]++;});
+  allPatients.forEach(p=>{
+    if(!p.time)return;
+    const c = p.count||1;
+    totals[p.time.hour] += c;
+    if(p.acuity==='green')low[p.time.hour] += c;
+  });
   const labels=totals.map((_,i)=>i.toString().padStart(2,'0')+':00');
   charts.hour=new Chart(document.getElementById('hourChart').getContext('2d'),{
     type:'bar',data:{labels,datasets:[
@@ -1807,7 +1866,12 @@ function renderDowChart(){
   destroyChart('dow');
   const names=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const totals=new Array(7).fill(0),low=new Array(7).fill(0);
-  allPatients.forEach(p=>{if(!p.date)return;totals[p.date.getDay()]++;if(p.acuity==='green')low[p.date.getDay()]++;});
+  allPatients.forEach(p=>{
+    if(!p.date)return;
+    const c = p.count||1;
+    totals[p.date.getDay()] += c;
+    if(p.acuity==='green')low[p.date.getDay()] += c;
+  });
   charts.dow=new Chart(document.getElementById('dowChart').getContext('2d'),{
     type:'bar',data:{labels:names,datasets:[
       {label:'All Trainees',data:totals,backgroundColor:'#4b5320'},
@@ -1841,7 +1905,7 @@ function renderPatientTable(){
   });
   document.getElementById('patientTableBody').innerHTML=sorted.map(p=>`
     <tr style="background:${colorMap[p.acuity]||'#fff'}">
-      <td>${fmtDate(p.date)}</td><td>${p.timeStr}</td><td>${p.name}</td>
+      <td>${fmtDate(p.date)}</td><td>${p.timeStr}</td><td style="font-weight:bold">${p.count||1}</td>
       <td>${p.company}</td><td>${p.battalion}</td><td>${p.bde||''}</td>
       <td>${labelMap[p.acuity]||'Unknown'}</td>
       <td><span class="swatch" style="background:#${p.fillHex||'ffffff'}"></span>${p.fillHex?'#'+p.fillHex:'(none)'}</td>
@@ -1863,10 +1927,10 @@ function exportCSV(){
   allData.forEach(d=>{
     csv+=[fmtDate(d.date),d.sheetUsed,d.census,d.trainees,d.medscreen,d.lwobs,d.ama,d.transfer,d.admitted,d.ambulance,d.cat1,d.cat23,d.cat45,d.unknown].join(',')+'\n';
   });
-  csv+='\n\nDate,CheckInTime,Name,Company,Battalion,BDE,Acuity,FillHex\n';
+  csv+='\n\nDate,TimeBlock,TraineeCount,Company,Battalion,BDE,Acuity,FillHex\n';
   allPatients.forEach(p=>{
     const lab={red:'Cat1',orange:'Cat2_3',green:'Cat4_5',unknown:'Unknown'}[p.acuity]||'Unknown';
-    csv+=[fmtDate(p.date),'"'+p.timeStr+'"','"'+p.name+'"',p.company,p.battalion,'"'+(p.bde||'')+'"',lab,p.fillHex].join(',')+'\n';
+    csv+=[fmtDate(p.date),'"'+p.timeStr+'"',p.count||1,p.company,p.battalion,'"'+(p.bde||'')+'"',lab,p.fillHex].join(',')+'\n';
   });
   const blob=new Blob([csv],{type:'text/csv'});
   const a=document.createElement('a');
