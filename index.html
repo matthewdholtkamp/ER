@@ -447,21 +447,9 @@ const BN_ONLY_REGEX = new RegExp('\\b(\\d{1,4}(?:[\\/\\-–]\\d{1,4})?|ftu|rhu|t
 function cleanBattalionNumber(bnStr) {
   const bnLower = String(bnStr).toLowerCase();
   
-  // 58th BN rule: anything with 58 or 558 in it maps to '58'
+  // 58th BN rule: anything with 58 in it maps to '58'
   if (bnLower.includes('58')) {
     return '58';
-  }
-  // 1/48 -> 148
-  if (bnLower.includes('1/48') || bnLower.includes('1-48') || bnLower.includes('1–48') || bnLower.includes('148')) {
-    return '148';
-  }
-  // 2/10 -> 210
-  if (bnLower.includes('2/10') || bnLower.includes('2-10') || bnLower.includes('210')) {
-    return '210';
-  }
-  // 3/10 -> 310
-  if (bnLower.includes('3/10') || bnLower.includes('3-10') || bnLower.includes('310')) {
-    return '310';
   }
   
   const upper = bnLower.toUpperCase();
@@ -469,6 +457,7 @@ function cleanBattalionNumber(bnStr) {
     return upper;
   }
   
+  // Generically strip non-digits (e.g. '1/48' -> '148', '2-10' -> '210', '3/10' -> '310')
   return bnLower.replace(/\D/g, '');
 }
 
