@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <title>GLWACH ER Commander's Report Tracker</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="jszip.min.js"></script>
+<script src="chart.umd.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Arial, Helvetica, sans-serif; background: #f4f4f4; color: #1a1a1a; line-height: 1.4; }
@@ -156,6 +156,7 @@
     <button onclick="document.getElementById('fileInput').click()">Add Files</button>
     <button onclick="clearAll()">Clear All</button>
     <button onclick="exportCSV()">Export CSV</button>
+    <button onclick="downloadDataJSON()">Save Data File</button>
     <span class="file-list" id="fileList">No files loaded.</span>
   </div>
 
@@ -1874,8 +1875,39 @@ function exportCSV(){
   a.click();
 }
 
+async function loadPersistentData() {
+  try {
+    const response = await fetch('data.json');
+    if (response.ok) {
+      const data = await response.json();
+      if (data && data.allData && data.allPatients) {
+        allData = data.allData.map(d => ({ ...d, date: new Date(d.date) }));
+        allPatients = data.allPatients.map(p => ({ ...p, date: p.date ? new Date(p.date) : null }));
+        dbg(`Loaded ${allData.length} days of persistent data from data.json`, 'ok');
+        render();
+      }
+    }
+  } catch (err) {
+    dbg('No persistent data loaded from data.json: ' + err.message, 'info');
+  }
+}
+
+function downloadDataJSON() {
+  if (!allData.length) { alert('No data to save.'); return; }
+  const payload = {
+    allData: allData,
+    allPatients: allPatients
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'data.json';
+  a.click();
+}
+
 /* ---- One-time wiring ---- */
 uvWireSlider();
+loadPersistentData();
 </script>
 </body>
 </html>

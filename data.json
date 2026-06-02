@@ -1,0 +1,1568 @@
+{
+  "allData": [
+    {
+      "date": "2026-05-01",
+      "sheetUsed": "Sheet1",
+      "census": 66.0,
+      "medscreen": 0,
+      "lwobs": 1.0,
+      "ama": 0,
+      "transfer": 1.0,
+      "admitted": 0,
+      "ambulance": 1.0,
+      "trainees": 0,
+      "cat1": 0,
+      "cat23": 0,
+      "cat45": 0,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-02",
+      "sheetUsed": "Sheet1",
+      "census": 50.0,
+      "medscreen": 0,
+      "lwobs": 0,
+      "ama": 0,
+      "transfer": 4.0,
+      "admitted": 0,
+      "ambulance": 4.0,
+      "trainees": 1,
+      "cat1": 0,
+      "cat23": 1,
+      "cat45": 0,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-03",
+      "sheetUsed": "Sheet1",
+      "census": 56.0,
+      "medscreen": 1.0,
+      "lwobs": 2.0,
+      "ama": 0,
+      "transfer": 1.0,
+      "admitted": 0,
+      "ambulance": 5.0,
+      "trainees": 0,
+      "cat1": 0,
+      "cat23": 0,
+      "cat45": 0,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-04",
+      "sheetUsed": "Sheet1",
+      "census": 73.0,
+      "medscreen": 2.0,
+      "lwobs": 0,
+      "ama": 0,
+      "transfer": 0,
+      "admitted": 0,
+      "ambulance": 6.0,
+      "trainees": 10,
+      "cat1": 4,
+      "cat23": 3,
+      "cat45": 3,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-05",
+      "sheetUsed": "Sheet1",
+      "census": 75.0,
+      "medscreen": 0,
+      "lwobs": 2.0,
+      "ama": 0,
+      "transfer": 1.0,
+      "admitted": 0,
+      "ambulance": 4.0,
+      "trainees": 5,
+      "cat1": 0,
+      "cat23": 4,
+      "cat45": 1,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-06",
+      "sheetUsed": "Sheet1",
+      "census": 80.0,
+      "medscreen": 1.0,
+      "lwobs": 3.0,
+      "ama": 0,
+      "transfer": 3.0,
+      "admitted": 0,
+      "ambulance": 6.0,
+      "trainees": 0,
+      "cat1": 0,
+      "cat23": 0,
+      "cat45": 0,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-07",
+      "sheetUsed": "Sheet1",
+      "census": 70.0,
+      "medscreen": 2.0,
+      "lwobs": 1.0,
+      "ama": 0,
+      "transfer": 2.0,
+      "admitted": 0,
+      "ambulance": 6.0,
+      "trainees": 0,
+      "cat1": 0,
+      "cat23": 0,
+      "cat45": 0,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-08",
+      "sheetUsed": "Sheet1",
+      "census": 74.0,
+      "medscreen": 3.0,
+      "lwobs": 1.0,
+      "ama": 0,
+      "transfer": 4.0,
+      "admitted": 0,
+      "ambulance": 7.0,
+      "trainees": 11,
+      "cat1": 2,
+      "cat23": 3,
+      "cat45": 6,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-09",
+      "sheetUsed": "Sheet1",
+      "census": 57.0,
+      "medscreen": 2.0,
+      "lwobs": 0,
+      "ama": 0,
+      "transfer": 3.0,
+      "admitted": 0,
+      "ambulance": 4.0,
+      "trainees": 7,
+      "cat1": 0,
+      "cat23": 4,
+      "cat45": 3,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-10",
+      "sheetUsed": "Sheet1",
+      "census": 49.0,
+      "medscreen": 1.0,
+      "lwobs": 0,
+      "ama": 0,
+      "transfer": 6.0,
+      "admitted": 0,
+      "ambulance": 1.0,
+      "trainees": 5,
+      "cat1": 0,
+      "cat23": 1,
+      "cat45": 4,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-11",
+      "sheetUsed": "Sheet1",
+      "census": 76.0,
+      "medscreen": 1.0,
+      "lwobs": 3.0,
+      "ama": 0,
+      "transfer": 5.0,
+      "admitted": 0,
+      "ambulance": 10.0,
+      "trainees": 0,
+      "cat1": 0,
+      "cat23": 0,
+      "cat45": 0,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-12",
+      "sheetUsed": "Sheet1",
+      "census": 72.0,
+      "medscreen": 1.0,
+      "lwobs": 0,
+      "ama": 0,
+      "transfer": 5.0,
+      "admitted": 0,
+      "ambulance": 5.0,
+      "trainees": 0,
+      "cat1": 0,
+      "cat23": 0,
+      "cat45": 0,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-13",
+      "sheetUsed": "Sheet1",
+      "census": 60.0,
+      "medscreen": 0,
+      "lwobs": 0,
+      "ama": 0,
+      "transfer": 4.0,
+      "admitted": 0,
+      "ambulance": 6.0,
+      "trainees": 7,
+      "cat1": 3,
+      "cat23": 3,
+      "cat45": 1,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-14",
+      "sheetUsed": "Sheet1",
+      "census": 57.0,
+      "medscreen": 0,
+      "lwobs": 0,
+      "ama": 0,
+      "transfer": 1.0,
+      "admitted": 0,
+      "ambulance": 5.0,
+      "trainees": 3,
+      "cat1": 1,
+      "cat23": 1,
+      "cat45": 1,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-15",
+      "sheetUsed": "Sheet1",
+      "census": 73.0,
+      "medscreen": 0,
+      "lwobs": 1.0,
+      "ama": 0,
+      "transfer": 4.0,
+      "admitted": 0,
+      "ambulance": 10.0,
+      "trainees": 0,
+      "cat1": 0,
+      "cat23": 0,
+      "cat45": 0,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-16",
+      "sheetUsed": "Sheet1",
+      "census": 68.0,
+      "medscreen": 2.0,
+      "lwobs": 0,
+      "ama": 1.0,
+      "transfer": 2.0,
+      "admitted": 0,
+      "ambulance": 5.0,
+      "trainees": 0,
+      "cat1": 0,
+      "cat23": 0,
+      "cat45": 0,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-17",
+      "sheetUsed": "Sheet1",
+      "census": 63.0,
+      "medscreen": 0,
+      "lwobs": 0,
+      "ama": 1.0,
+      "transfer": 3.0,
+      "admitted": 0,
+      "ambulance": 2.0,
+      "trainees": 0,
+      "cat1": 0,
+      "cat23": 0,
+      "cat45": 0,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-18",
+      "sheetUsed": "Sheet1",
+      "census": 64.0,
+      "medscreen": 1.0,
+      "lwobs": 0,
+      "ama": 1.0,
+      "transfer": 2.0,
+      "admitted": 0,
+      "ambulance": 5.0,
+      "trainees": 2,
+      "cat1": 0,
+      "cat23": 1,
+      "cat45": 1,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-19",
+      "sheetUsed": "Sheet1",
+      "census": 62.0,
+      "medscreen": 1.0,
+      "lwobs": 1.0,
+      "ama": 1.0,
+      "transfer": 0.0,
+      "admitted": 0,
+      "ambulance": 2.0,
+      "trainees": 5,
+      "cat1": 2,
+      "cat23": 2,
+      "cat45": 1,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-20",
+      "sheetUsed": "Sheet1",
+      "census": 61.0,
+      "medscreen": 0,
+      "lwobs": 0,
+      "ama": 0,
+      "transfer": 1.0,
+      "admitted": 0,
+      "ambulance": 2.0,
+      "trainees": 0,
+      "cat1": 0,
+      "cat23": 0,
+      "cat45": 0,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-21",
+      "sheetUsed": "Sheet1",
+      "census": 56.0,
+      "medscreen": 1.0,
+      "lwobs": 1.0,
+      "ama": 1.0,
+      "transfer": 2.0,
+      "admitted": 0,
+      "ambulance": 1.0,
+      "trainees": 0,
+      "cat1": 0,
+      "cat23": 0,
+      "cat45": 0,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-22",
+      "sheetUsed": "Sheet1",
+      "census": 61.0,
+      "medscreen": 0,
+      "lwobs": 0,
+      "ama": 1.0,
+      "transfer": 3.0,
+      "admitted": 0,
+      "ambulance": 3.0,
+      "trainees": 17,
+      "cat1": 3,
+      "cat23": 5,
+      "cat45": 9,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-23",
+      "sheetUsed": "Sheet1",
+      "census": 74.0,
+      "medscreen": 0,
+      "lwobs": 3.0,
+      "ama": 0,
+      "transfer": 3.0,
+      "admitted": 0,
+      "ambulance": 3.0,
+      "trainees": 0,
+      "cat1": 0,
+      "cat23": 0,
+      "cat45": 0,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-24",
+      "sheetUsed": "Sheet1",
+      "census": 56.0,
+      "medscreen": 0,
+      "lwobs": 1.0,
+      "ama": 1.0,
+      "transfer": 0,
+      "admitted": 0,
+      "ambulance": 4.0,
+      "trainees": 10,
+      "cat1": 0,
+      "cat23": 4,
+      "cat45": 6,
+      "unknown": 0
+    },
+    {
+      "date": "2026-05-25",
+      "sheetUsed": "Sheet1",
+      "census": 60.0,
+      "medscreen": 0,
+      "lwobs": 0,
+      "ama": 0,
+      "transfer": 2.0,
+      "admitted": 0,
+      "ambulance": 5.0,
+      "trainees": 0,
+      "cat1": 0,
+      "cat23": 0,
+      "cat45": 0,
+      "unknown": 0
+    }
+  ],
+  "allPatients": [
+    {
+      "date": "2026-05-02",
+      "timeStr": "4:09 PM",
+      "time": {
+        "hour": 16,
+        "minute": 9
+      },
+      "name": "WSD787",
+      "company": "D",
+      "battalion": "787",
+      "bde": "14th Military Police BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-04",
+      "timeStr": "10:14 AM",
+      "time": {
+        "hour": 10,
+        "minute": 14
+      },
+      "name": "LDB31",
+      "company": "B",
+      "battalion": "31",
+      "bde": "1st Engineer BDE",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-04",
+      "timeStr": "11:38 AM",
+      "time": {
+        "hour": 11,
+        "minute": 38
+      },
+      "name": "MAA43",
+      "company": "A",
+      "battalion": "43",
+      "bde": "43rd Reception BN",
+      "acuity": "red",
+      "fillHex": "FF0000"
+    },
+    {
+      "date": "2026-05-04",
+      "timeStr": "2:09 PM",
+      "time": {
+        "hour": 14,
+        "minute": 9
+      },
+      "name": "MAA35",
+      "company": "A",
+      "battalion": "35",
+      "bde": "1st Engineer BDE",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-04",
+      "timeStr": "2:54 PM",
+      "time": {
+        "hour": 14,
+        "minute": 54
+      },
+      "name": "MDA35",
+      "company": "A",
+      "battalion": "35",
+      "bde": "1st Engineer BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-04",
+      "timeStr": "2:57 PM",
+      "time": {
+        "hour": 14,
+        "minute": 57
+      },
+      "name": "HCB31",
+      "company": "B",
+      "battalion": "31",
+      "bde": "1st Engineer BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-04",
+      "timeStr": "3:52 PM",
+      "time": {
+        "hour": 15,
+        "minute": 52
+      },
+      "name": "APF701",
+      "company": "F",
+      "battalion": "701",
+      "bde": "14th Military Police BDE",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-04",
+      "timeStr": "4:57 PM",
+      "time": {
+        "hour": 16,
+        "minute": 57
+      },
+      "name": "HAE31",
+      "company": "E",
+      "battalion": "31",
+      "bde": "1st Engineer BDE",
+      "acuity": "red",
+      "fillHex": "FF0000"
+    },
+    {
+      "date": "2026-05-04",
+      "timeStr": "5:35 PM",
+      "time": {
+        "hour": 17,
+        "minute": 35
+      },
+      "name": "BRB58",
+      "company": "B",
+      "battalion": "58",
+      "bde": "3rd Chemical BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-04",
+      "timeStr": "6:12 PM",
+      "time": {
+        "hour": 18,
+        "minute": 12
+      },
+      "name": "BRD795",
+      "company": "D",
+      "battalion": "795",
+      "bde": "14th Military Police BDE",
+      "acuity": "red",
+      "fillHex": "FF0000"
+    },
+    {
+      "date": "2026-05-04",
+      "timeStr": "6:21 PM",
+      "time": {
+        "hour": 18,
+        "minute": 21
+      },
+      "name": "GEB31",
+      "company": "B",
+      "battalion": "31",
+      "bde": "1st Engineer BDE",
+      "acuity": "red",
+      "fillHex": "FF0000"
+    },
+    {
+      "date": "2026-05-05",
+      "timeStr": "7:22 AM",
+      "time": {
+        "hour": 7,
+        "minute": 22
+      },
+      "name": "CKB84",
+      "company": "B",
+      "battalion": "84",
+      "bde": "3rd Chemical BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-05",
+      "timeStr": "11:38 AM",
+      "time": {
+        "hour": 11,
+        "minute": 38
+      },
+      "name": "WSC210",
+      "company": "C",
+      "battalion": "210",
+      "bde": "3rd Chemical BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-05",
+      "timeStr": "4:55 PM",
+      "time": {
+        "hour": 16,
+        "minute": 55
+      },
+      "name": "LKFTU",
+      "company": "",
+      "battalion": "FTU",
+      "bde": "Other Units",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-05",
+      "timeStr": "5:11 PM",
+      "time": {
+        "hour": 17,
+        "minute": 11
+      },
+      "name": "WJD31",
+      "company": "D",
+      "battalion": "31",
+      "bde": "1st Engineer BDE",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-05",
+      "timeStr": "6:08 PM",
+      "time": {
+        "hour": 18,
+        "minute": 8
+      },
+      "name": "FDE31",
+      "company": "E",
+      "battalion": "31",
+      "bde": "1st Engineer BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-08",
+      "timeStr": "7:10 AM",
+      "time": {
+        "hour": 7,
+        "minute": 10
+      },
+      "name": "JAA554",
+      "company": "A",
+      "battalion": "554",
+      "bde": "1st Engineer BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-08",
+      "timeStr": "7:17 AM",
+      "time": {
+        "hour": 7,
+        "minute": 17
+      },
+      "name": "SCB795",
+      "company": "B",
+      "battalion": "795",
+      "bde": "14th Military Police BDE",
+      "acuity": "red",
+      "fillHex": "FF0000"
+    },
+    {
+      "date": "2026-05-08",
+      "timeStr": "8:27 AM",
+      "time": {
+        "hour": 8,
+        "minute": 27
+      },
+      "name": "BHB554",
+      "company": "B",
+      "battalion": "554",
+      "bde": "1st Engineer BDE",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-08",
+      "timeStr": "8:46 PM",
+      "time": {
+        "hour": 20,
+        "minute": 46
+      },
+      "name": "MJC310",
+      "company": "C",
+      "battalion": "310",
+      "bde": "3rd Chemical BDE",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-08",
+      "timeStr": "9:04 AM",
+      "time": {
+        "hour": 9,
+        "minute": 4
+      },
+      "name": "BJB84",
+      "company": "B",
+      "battalion": "84",
+      "bde": "3rd Chemical BDE",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-08",
+      "timeStr": "2:46 PM",
+      "time": {
+        "hour": 14,
+        "minute": 46
+      },
+      "name": "TRD31",
+      "company": "D",
+      "battalion": "31",
+      "bde": "1st Engineer BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-08",
+      "timeStr": "2:56 PM",
+      "time": {
+        "hour": 14,
+        "minute": 56
+      },
+      "name": "HAA58",
+      "company": "A",
+      "battalion": "58",
+      "bde": "3rd Chemical BDE",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-08",
+      "timeStr": "12:58 PM",
+      "time": {
+        "hour": 12,
+        "minute": 58
+      },
+      "name": "QMF210",
+      "company": "F",
+      "battalion": "210",
+      "bde": "3rd Chemical BDE",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-08",
+      "timeStr": "3:26 PM",
+      "time": {
+        "hour": 15,
+        "minute": 26
+      },
+      "name": "TKC701",
+      "company": "C",
+      "battalion": "701",
+      "bde": "14th Military Police BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-08",
+      "timeStr": "4:10 PM",
+      "time": {
+        "hour": 16,
+        "minute": 10
+      },
+      "name": "PBB169",
+      "company": "B",
+      "battalion": "169",
+      "bde": "1st Engineer BDE",
+      "acuity": "red",
+      "fillHex": "FF0000"
+    },
+    {
+      "date": "2026-05-08",
+      "timeStr": "6:09 PM",
+      "time": {
+        "hour": 18,
+        "minute": 9
+      },
+      "name": "SMFTU",
+      "company": "",
+      "battalion": "FTU",
+      "bde": "Other Units",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-09",
+      "timeStr": "6:34 AM",
+      "time": {
+        "hour": 6,
+        "minute": 34
+      },
+      "name": "SBB43",
+      "company": "B",
+      "battalion": "43",
+      "bde": "43rd Reception BN",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-09",
+      "timeStr": "7:36 AM",
+      "time": {
+        "hour": 7,
+        "minute": 36
+      },
+      "name": "LAA58",
+      "company": "A",
+      "battalion": "58",
+      "bde": "3rd Chemical BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-09",
+      "timeStr": "8:19 AM",
+      "time": {
+        "hour": 8,
+        "minute": 19
+      },
+      "name": "MAD787",
+      "company": "D",
+      "battalion": "787",
+      "bde": "14th Military Police BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-09",
+      "timeStr": "8:22 AM",
+      "time": {
+        "hour": 8,
+        "minute": 22
+      },
+      "name": "MLD787",
+      "company": "D",
+      "battalion": "787",
+      "bde": "14th Military Police BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-09",
+      "timeStr": "8:43 AM",
+      "time": {
+        "hour": 8,
+        "minute": 43
+      },
+      "name": "GAC701",
+      "company": "C",
+      "battalion": "701",
+      "bde": "14th Military Police BDE",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-09",
+      "timeStr": "10:36 AM",
+      "time": {
+        "hour": 10,
+        "minute": 36
+      },
+      "name": "GAC35",
+      "company": "C",
+      "battalion": "35",
+      "bde": "1st Engineer BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-09",
+      "timeStr": "11:38 AM",
+      "time": {
+        "hour": 11,
+        "minute": 38
+      },
+      "name": "ESC210",
+      "company": "C",
+      "battalion": "210",
+      "bde": "3rd Chemical BDE",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-10",
+      "timeStr": "7:37 AM",
+      "time": {
+        "hour": 7,
+        "minute": 37
+      },
+      "name": "FEB787",
+      "company": "B",
+      "battalion": "787",
+      "bde": "14th Military Police BDE",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-10",
+      "timeStr": "7:45 AM",
+      "time": {
+        "hour": 7,
+        "minute": 45
+      },
+      "name": "MMA31",
+      "company": "A",
+      "battalion": "31",
+      "bde": "1st Engineer BDE",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-10",
+      "timeStr": "2:58 PM",
+      "time": {
+        "hour": 14,
+        "minute": 58
+      },
+      "name": "RHE31",
+      "company": "E",
+      "battalion": "31",
+      "bde": "1st Engineer BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-10",
+      "timeStr": "4:25 PM",
+      "time": {
+        "hour": 16,
+        "minute": 25
+      },
+      "name": "TJA58",
+      "company": "A",
+      "battalion": "58",
+      "bde": "3rd Chemical BDE",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-10",
+      "timeStr": "5:23 PM",
+      "time": {
+        "hour": 17,
+        "minute": 23
+      },
+      "name": "JVB148",
+      "company": "B",
+      "battalion": "148",
+      "bde": "3rd Chemical BDE",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-13",
+      "timeStr": "7:27 AM",
+      "time": {
+        "hour": 7,
+        "minute": 27
+      },
+      "name": "HAB35",
+      "company": "B",
+      "battalion": "35",
+      "bde": "1st Engineer BDE",
+      "acuity": "red",
+      "fillHex": "FF0000"
+    },
+    {
+      "date": "2026-05-13",
+      "timeStr": "7:49 AM",
+      "time": {
+        "hour": 7,
+        "minute": 49
+      },
+      "name": "SZB35",
+      "company": "B",
+      "battalion": "35",
+      "bde": "1st Engineer BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-13",
+      "timeStr": "10:55 AM",
+      "time": {
+        "hour": 10,
+        "minute": 55
+      },
+      "name": "MTA787",
+      "company": "A",
+      "battalion": "787",
+      "bde": "14th Military Police BDE",
+      "acuity": "red",
+      "fillHex": "FF0000"
+    },
+    {
+      "date": "2026-05-13",
+      "timeStr": "12:24 PM",
+      "time": {
+        "hour": 12,
+        "minute": 24
+      },
+      "name": "BQA43",
+      "company": "A",
+      "battalion": "43",
+      "bde": "43rd Reception BN",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-13",
+      "timeStr": "1:10 PM",
+      "time": {
+        "hour": 13,
+        "minute": 10
+      },
+      "name": "PJC148",
+      "company": "C",
+      "battalion": "148",
+      "bde": "3rd Chemical BDE",
+      "acuity": "red",
+      "fillHex": "FF0000"
+    },
+    {
+      "date": "2026-05-13",
+      "timeStr": "3:13 PM",
+      "time": {
+        "hour": 15,
+        "minute": 13
+      },
+      "name": "DBD554",
+      "company": "D",
+      "battalion": "554",
+      "bde": "1st Engineer BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-13",
+      "timeStr": "6:14 PM",
+      "time": {
+        "hour": 18,
+        "minute": 14
+      },
+      "name": "AJD554",
+      "company": "D",
+      "battalion": "554",
+      "bde": "1st Engineer BDE",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-14",
+      "timeStr": "8:09 AM",
+      "time": {
+        "hour": 8,
+        "minute": 9
+      },
+      "name": "SAC701",
+      "company": "C",
+      "battalion": "701",
+      "bde": "14th Military Police BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-14",
+      "timeStr": "9:30 AM",
+      "time": {
+        "hour": 9,
+        "minute": 30
+      },
+      "name": "KJA310",
+      "company": "A",
+      "battalion": "310",
+      "bde": "3rd Chemical BDE",
+      "acuity": "red",
+      "fillHex": "FF0000"
+    },
+    {
+      "date": "2026-05-14",
+      "timeStr": "11:15 AM",
+      "time": {
+        "hour": 11,
+        "minute": 15
+      },
+      "name": "WEC787",
+      "company": "C",
+      "battalion": "787",
+      "bde": "14th Military Police BDE",
+      "acuity": "green",
+      "fillHex": "00B050"
+    },
+    {
+      "date": "2026-05-18",
+      "timeStr": "3:16 PM",
+      "time": {
+        "hour": 15,
+        "minute": 16
+      },
+      "name": "PIA58",
+      "company": "A",
+      "battalion": "58",
+      "bde": "3rd Chemical BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-18",
+      "timeStr": "5:01 PM",
+      "time": {
+        "hour": 17,
+        "minute": 1
+      },
+      "name": "BMB787",
+      "company": "B",
+      "battalion": "787",
+      "bde": "14th Military Police BDE",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-19",
+      "timeStr": "10:27 AM",
+      "time": {
+        "hour": 10,
+        "minute": 27
+      },
+      "name": "MJE31",
+      "company": "E",
+      "battalion": "31",
+      "bde": "1st Engineer BDE",
+      "acuity": "red",
+      "fillHex": "FF0000"
+    },
+    {
+      "date": "2026-05-19",
+      "timeStr": "4:20 PM",
+      "time": {
+        "hour": 16,
+        "minute": 20
+      },
+      "name": "HIB84",
+      "company": "B",
+      "battalion": "84",
+      "bde": "3rd Chemical BDE",
+      "acuity": "green",
+      "fillHex": "00B050"
+    },
+    {
+      "date": "2026-05-19",
+      "timeStr": "5:19 PM",
+      "time": {
+        "hour": 17,
+        "minute": 19
+      },
+      "name": "RLD84",
+      "company": "D",
+      "battalion": "84",
+      "bde": "3rd Chemical BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-19",
+      "timeStr": "5:48 PM",
+      "time": {
+        "hour": 17,
+        "minute": 48
+      },
+      "name": "VPC701",
+      "company": "C",
+      "battalion": "701",
+      "bde": "14th Military Police BDE",
+      "acuity": "red",
+      "fillHex": "FF0000"
+    },
+    {
+      "date": "2026-05-19",
+      "timeStr": "6:32 PM",
+      "time": {
+        "hour": 18,
+        "minute": 32
+      },
+      "name": "JDB787",
+      "company": "B",
+      "battalion": "787",
+      "bde": "14th Military Police BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-22",
+      "timeStr": "6:59 AM",
+      "time": {
+        "hour": 6,
+        "minute": 59
+      },
+      "name": "UAA35",
+      "company": "A",
+      "battalion": "35",
+      "bde": "1st Engineer BDE",
+      "acuity": "green",
+      "fillHex": "00B050"
+    },
+    {
+      "date": "2026-05-22",
+      "timeStr": "7:58 AM",
+      "time": {
+        "hour": 7,
+        "minute": 58
+      },
+      "name": "FAB43",
+      "company": "B",
+      "battalion": "43",
+      "bde": "43rd Reception BN",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-22",
+      "timeStr": "8:40 AM",
+      "time": {
+        "hour": 8,
+        "minute": 40
+      },
+      "name": "EC",
+      "company": "",
+      "battalion": "",
+      "bde": "Other Units",
+      "acuity": "red",
+      "fillHex": "FF0000"
+    },
+    {
+      "date": "2026-05-22",
+      "timeStr": "9:18 AM",
+      "time": {
+        "hour": 9,
+        "minute": 18
+      },
+      "name": "MND148",
+      "company": "D",
+      "battalion": "148",
+      "bde": "3rd Chemical BDE",
+      "acuity": "red",
+      "fillHex": "FF0000"
+    },
+    {
+      "date": "2026-05-22",
+      "timeStr": "10:31 AM",
+      "time": {
+        "hour": 10,
+        "minute": 31
+      },
+      "name": "VKD795",
+      "company": "D",
+      "battalion": "795",
+      "bde": "14th Military Police BDE",
+      "acuity": "green",
+      "fillHex": "00B050"
+    },
+    {
+      "date": "2026-05-22",
+      "timeStr": "12:08 PM",
+      "time": {
+        "hour": 12,
+        "minute": 8
+      },
+      "name": "PAB43",
+      "company": "B",
+      "battalion": "43",
+      "bde": "43rd Reception BN",
+      "acuity": "red",
+      "fillHex": "FF0000"
+    },
+    {
+      "date": "2026-05-22",
+      "timeStr": "2:49 PM",
+      "time": {
+        "hour": 14,
+        "minute": 49
+      },
+      "name": "BRE787",
+      "company": "E",
+      "battalion": "787",
+      "bde": "14th Military Police BDE",
+      "acuity": "green",
+      "fillHex": "00B050"
+    },
+    {
+      "date": "2026-05-22",
+      "timeStr": "8:21 AM",
+      "time": {
+        "hour": 8,
+        "minute": 21
+      },
+      "name": "VJA795",
+      "company": "A",
+      "battalion": "795",
+      "bde": "14th Military Police BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-22",
+      "timeStr": "2:04 PM",
+      "time": {
+        "hour": 14,
+        "minute": 4
+      },
+      "name": "RFD795",
+      "company": "D",
+      "battalion": "795",
+      "bde": "14th Military Police BDE",
+      "acuity": "green",
+      "fillHex": "00B050"
+    },
+    {
+      "date": "2026-05-22",
+      "timeStr": "3:15 PM",
+      "time": {
+        "hour": 15,
+        "minute": 15
+      },
+      "name": "UJD795",
+      "company": "D",
+      "battalion": "795",
+      "bde": "14th Military Police BDE",
+      "acuity": "green",
+      "fillHex": "00B050"
+    },
+    {
+      "date": "2026-05-22",
+      "timeStr": "4:04 PM",
+      "time": {
+        "hour": 16,
+        "minute": 4
+      },
+      "name": "FSE210",
+      "company": "E",
+      "battalion": "210",
+      "bde": "3rd Chemical BDE",
+      "acuity": "green",
+      "fillHex": "00B050"
+    },
+    {
+      "date": "2026-05-22",
+      "timeStr": "4:08 PM",
+      "time": {
+        "hour": 16,
+        "minute": 8
+      },
+      "name": "DTE210",
+      "company": "E",
+      "battalion": "210",
+      "bde": "3rd Chemical BDE",
+      "acuity": "green",
+      "fillHex": "00B050"
+    },
+    {
+      "date": "2026-05-22",
+      "timeStr": "4:13 PM",
+      "time": {
+        "hour": 16,
+        "minute": 13
+      },
+      "name": "KLE210",
+      "company": "E",
+      "battalion": "210",
+      "bde": "3rd Chemical BDE",
+      "acuity": "green",
+      "fillHex": "00B050"
+    },
+    {
+      "date": "2026-05-22",
+      "timeStr": "4:19 PM",
+      "time": {
+        "hour": 16,
+        "minute": 19
+      },
+      "name": "DKB795",
+      "company": "B",
+      "battalion": "795",
+      "bde": "14th Military Police BDE",
+      "acuity": "green",
+      "fillHex": "00B050"
+    },
+    {
+      "date": "2026-05-22",
+      "timeStr": "4:34 PM",
+      "time": {
+        "hour": 16,
+        "minute": 34
+      },
+      "name": "MMD31",
+      "company": "D",
+      "battalion": "31",
+      "bde": "1st Engineer BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-22",
+      "timeStr": "4:37 PM",
+      "time": {
+        "hour": 16,
+        "minute": 37
+      },
+      "name": "GCB148",
+      "company": "B",
+      "battalion": "148",
+      "bde": "3rd Chemical BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-22",
+      "timeStr": "5:06 PM",
+      "time": {
+        "hour": 17,
+        "minute": 6
+      },
+      "name": "NKFTU",
+      "company": "",
+      "battalion": "FTU",
+      "bde": "Other Units",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-24",
+      "timeStr": "7:36 AM",
+      "time": {
+        "hour": 7,
+        "minute": 36
+      },
+      "name": "BIA31",
+      "company": "A",
+      "battalion": "31",
+      "bde": "1st Engineer BDE",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-24",
+      "timeStr": "8:12 AM",
+      "time": {
+        "hour": 8,
+        "minute": 12
+      },
+      "name": "CCD787",
+      "company": "D",
+      "battalion": "787",
+      "bde": "14th Military Police BDE",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-24",
+      "timeStr": "8:15 AM",
+      "time": {
+        "hour": 8,
+        "minute": 15
+      },
+      "name": "RFB58",
+      "company": "B",
+      "battalion": "58",
+      "bde": "3rd Chemical BDE",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-24",
+      "timeStr": "8:21 AM",
+      "time": {
+        "hour": 8,
+        "minute": 21
+      },
+      "name": "MYB58",
+      "company": "B",
+      "battalion": "58",
+      "bde": "3rd Chemical BDE",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-24",
+      "timeStr": "11:30 AM",
+      "time": {
+        "hour": 11,
+        "minute": 30
+      },
+      "name": "DKA58",
+      "company": "A",
+      "battalion": "58",
+      "bde": "3rd Chemical BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-24",
+      "timeStr": "12:03 PM",
+      "time": {
+        "hour": 12,
+        "minute": 3
+      },
+      "name": "NKFTU",
+      "company": "",
+      "battalion": "FTU",
+      "bde": "Other Units",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-24",
+      "timeStr": "12:22 PM",
+      "time": {
+        "hour": 12,
+        "minute": 22
+      },
+      "name": "SLB58",
+      "company": "B",
+      "battalion": "58",
+      "bde": "3rd Chemical BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    },
+    {
+      "date": "2026-05-24",
+      "timeStr": "1:16 PM",
+      "time": {
+        "hour": 13,
+        "minute": 16
+      },
+      "name": "WDA310",
+      "company": "A",
+      "battalion": "310",
+      "bde": "3rd Chemical BDE",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-24",
+      "timeStr": "3:30 PM",
+      "time": {
+        "hour": 15,
+        "minute": 30
+      },
+      "name": "RCC84",
+      "company": "C",
+      "battalion": "84",
+      "bde": "3rd Chemical BDE",
+      "acuity": "green",
+      "fillHex": "70AD47"
+    },
+    {
+      "date": "2026-05-24",
+      "timeStr": "6:26 PM",
+      "time": {
+        "hour": 18,
+        "minute": 26
+      },
+      "name": "WSB795",
+      "company": "B",
+      "battalion": "795",
+      "bde": "14th Military Police BDE",
+      "acuity": "orange",
+      "fillHex": "FFC000"
+    }
+  ]
+}
