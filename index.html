@@ -199,6 +199,26 @@
 
   <div id="results" style="display:none;">
 
+    <!-- Global Date Range Slider -->
+    <div class="panel" style="margin-top: 20px;">
+      <h3>Global Dashboard Date Range Filter</h3>
+      <div class="uv-toolbar" style="padding: 12px 14px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px;">
+        <div class="uv-block uv-date-row" style="width: 100%; min-width: auto; flex: 1;">
+          <span class="uv-block-title">Date Range (Applies to all charts & tables below)</span>
+          <div class="uv-slider-wrap">
+            <div class="uv-slider-track"></div>
+            <div class="uv-slider-range" id="globalSliderRange"></div>
+            <input type="range" id="globalSliderLo" min="0" max="0" value="0">
+            <input type="range" id="globalSliderHi" min="0" max="0" value="0">
+          </div>
+          <div class="uv-date-labels">
+            <div><span id="globalDateLo">—</span><div class="sub">start</div></div>
+            <div style="text-align:right;"><span id="globalDateHi">—</span><div class="sub">end</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="panel">
       <h3>Summary Statistics</h3>
       <div class="stat-row" id="aggStats"></div>
@@ -361,6 +381,12 @@ let debugLines  = [];
 let db = null;
 let syncEnabled = false;
 let unsubscribe = null;
+
+let globalState = {
+  loIdx: null,
+  hiIdx: null
+};
+let globalDateList = [];
 
 /* ---- Debug helpers ---- */
 function dbg(msg, type) {
@@ -1634,6 +1660,117 @@ function generateUnitVolumeInsight(filtered, groups, seriesMap, spanDays, gran, 
 /* ==========================================================
    RENDER
    ========================================================== */
+/* ==========================================================
+   GLOBAL DATE SLIDER
+   ========================================================== */
+function globalBuildDateSlider() {
+  const set = new Set();
+  allData.forEach(d => {
+    if (!d.date) return;
+    set.add(new Date(d.date.getFullYear(), d.date.getMonth(), d.date.getDate()).getTime());
+  });
+  globalDateList = Array.from(set).sort((a,b)=>a-b);
+
+  const lo = document.getElementById('globalSliderLo');
+  const hi = document.getElementById('globalSliderHi');
+  
+  if (!globalDateList.length) {
+    lo.min = hi.min = 0; lo.max = hi.max = 0; lo.value = hi.value = 0;
+    globalState.loIdx = 0;
+    globalState.hiIdx = 0;
+    globalUpdateDateLabels();
+    return;
+  }
+  
+  const maxIdx = globalDateList.length - 1;
+  lo.min = '0'; lo.max = String(maxIdx);
+  hi.min = '0'; hi.max = String(maxIdx);
+
+  if (globalState.loIdx === null || globalState.loIdx > maxIdx) {
+    globalState.loIdx = 0;
+  }
+  if (globalState.hiIdx === null || globalState.hiIdx > maxIdx || globalState.hiIdx < globalState.loIdx) {
+    globalState.hiIdx = maxIdx;
+  }
+  
+  lo.value = String(globalState.loIdx);
+  hi.value = String(globalState.hiIdx);
+  
+  globalUpdateDateLabels();
+}
+
+function globalUpdateDateLabels() {
+  const loEl = document.getElementById('globalDateLo');
+  const hiEl = document.getElementById('globalDateHi');
+  const rangeBar = document.getElementById('globalSliderRange');
+  if (!globalDateList.length) {
+    loEl.textContent = '—'; hiEl.textContent = '—';
+    rangeBar.style.left = '0%'; rangeBar.style.width = '0%';
+    return;
+  }
+  const maxIdx = globalDateList.length - 1;
+  loEl.textContent = fmtShortDate(new Date(globalDateList[globalState.loIdx]));
+  hiEl.textContent = fmtShortDate(new Date(globalDateList[globalState.hiIdx]));
+  const lpct = maxIdx > 0 ? (globalState.loIdx/maxIdx)*100 : 0;
+  const hpct = maxIdx > 0 ? (globalState.hiIdx/maxIdx)*100 : 100;
+  rangeBar.style.left  = lpct + '%';
+  rangeBar.style.width = (hpct - lpct) + '%';
+}
+
+function globalWireSlider() {
+  const lo = document.getElementById('globalSliderLo');
+  const hi = document.getElementById('globalSliderHi');
+  function onInput() {
+    let l = parseInt(lo.value,10);
+    let h = parseInt(hi.value,10);
+    if (l > h) {
+      [l,h] = [h,l];
+    }
+    globalState.loIdx = l;
+    globalState.hiIdx = h;
+    globalUpdateDateLabels();
+    renderFilteredResults();
+  }
+  lo.addEventListener('input', onInput);
+  hi.addEventListener('input', onInput);
+}
+
+function renderFilteredResults() {
+  if (!globalDateList.length) {
+    renderAggStats([]);
+    renderFullHistoryChart([]);
+    renderLast30Chart([]);
+    renderHourChart([]);
+    renderDowChart([]);
+    renderDailyTable([]);
+    renderPatientTable([]);
+    return;
+  }
+  const loTs = globalDateList[globalState.loIdx];
+  const hiTs = globalDateList[globalState.hiIdx];
+
+  // Filter allData
+  const filteredData = allData.filter(d => {
+    const ts = new Date(d.date.getFullYear(), d.date.getMonth(), d.date.getDate()).getTime();
+    return ts >= loTs && ts <= hiTs;
+  });
+
+  // Filter allPatients
+  const filteredPatients = allPatients.filter(p => {
+    if (!p.date) return false;
+    const ts = new Date(p.date.getFullYear(), p.date.getMonth(), p.date.getDate()).getTime();
+    return ts >= loTs && ts <= hiTs;
+  });
+
+  renderAggStats(filteredData);
+  renderFullHistoryChart(filteredData);
+  renderLast30Chart(filteredData);
+  renderHourChart(filteredPatients);
+  renderDowChart(filteredPatients);
+  renderDailyTable(filteredData);
+  renderPatientTable(filteredPatients);
+}
+
 function render(){
   const fl=document.getElementById('fileList');
   fl.textContent=allData.length
@@ -1647,14 +1784,11 @@ function render(){
   document.getElementById('results').style.display='block';
   document.getElementById('emptyMsg').style.display='none';
   allData.sort((a,b)=>(a.date||0)-(b.date||0));
-  renderAggStats();
-  renderTrendCharts();
-  renderHourChart();
-  renderDowChart();
-  uvBuildDateSlider();          // rebuild date slider from current data
-  renderUnitVolumeChart();      // new unit-volume line chart
-  renderDailyTable();
-  renderPatientTable();
+  
+  globalBuildDateSlider();
+  uvBuildDateSlider();
+  renderUnitVolumeChart();
+  renderFilteredResults();
 }
 
 /* ---- Average helpers ---- */
@@ -1664,14 +1798,15 @@ function avgOver(data, key) {
   return (sum / data.length).toFixed(1);
 }
 
-function renderAggStats(){
-  const last7 = allData.slice(-7);
+function renderAggStats(data){
+  const targetData = data || allData;
+  const last7 = targetData.slice(-7);
   const stats=[
-    ['Days Loaded',                allData.length],
-    ['Avg Census / Day',           avgOver(allData, 'census')],
-    ['Avg Trainees / Day',         avgOver(allData, 'trainees')],
-    ['Avg LWOBS / Day',            avgOver(allData, 'lwobs')],
-    ['Avg Cat 4/5 / Day',          avgOver(allData, 'cat45')],
+    ['Days Loaded',                targetData.length],
+    ['Avg Census / Day',           avgOver(targetData, 'census')],
+    ['Avg Trainees / Day',         avgOver(targetData, 'trainees')],
+    ['Avg LWOBS / Day',            avgOver(targetData, 'lwobs')],
+    ['Avg Cat 4/5 / Day',          avgOver(targetData, 'cat45')],
     ['Avg Trainees (Last 7 Days)', avgOver(last7,   'trainees')],
     ['Avg Cat 4/5 (Last 7 Days)',  avgOver(last7,   'cat45')],
     ['Avg LWOBS (Last 7 Days)',    avgOver(last7,   'lwobs')],
@@ -1823,21 +1958,29 @@ function buildTrendChartOptions(showTrend, xLabel) {
   };
 }
 
-function renderTrendCharts(){
-  renderFullHistoryChart();
-  renderLast30Chart();
+function renderTrendCharts() {
+  if (!globalDateList.length) return;
+  const loTs = globalDateList[globalState.loIdx];
+  const hiTs = globalDateList[globalState.hiIdx];
+  const filteredData = allData.filter(d => {
+    const ts = new Date(d.date.getFullYear(), d.date.getMonth(), d.date.getDate()).getTime();
+    return ts >= loTs && ts <= hiTs;
+  });
+  renderFullHistoryChart(filteredData);
+  renderLast30Chart(filteredData);
 }
 
-function renderFullHistoryChart(){
+function renderFullHistoryChart(data){
+  const targetData = data || allData;
   destroyChart('fullHistory');
-  if(!allData.length) return;
+  if(!targetData.length) return;
 
   const showTrend = document.getElementById('chkTrendlines').checked;
-  const labels    = allData.map(d => fmtShortDate(d.date));
-  const datasets  = buildTrendDatasets(allData, showTrend, 7);
+  const labels    = targetData.map(d => fmtShortDate(d.date));
+  const datasets  = buildTrendDatasets(targetData, showTrend, 7);
 
   document.getElementById('fullHistoryBadge').textContent =
-    allData.length + ' Day' + (allData.length===1?'':'s');
+    targetData.length + ' Day' + (targetData.length===1?'':'s');
 
   const options = buildTrendChartOptions(showTrend, 'Date');
   options.plugins.legend.onClick = makeLegendClickHandler();
@@ -1847,14 +1990,15 @@ function renderFullHistoryChart(){
     { type:'line', data:{ labels, datasets }, options }
   );
 
-  document.getElementById('fullHistoryInsight').innerHTML = generateFullHistoryInsight(allData);
+  document.getElementById('fullHistoryInsight').innerHTML = generateFullHistoryInsight(targetData);
 }
 
-function renderLast30Chart(){
+function renderLast30Chart(data){
+  const targetData = data || allData;
   destroyChart('last30');
-  if(!allData.length) return;
+  if(!targetData.length) return;
 
-  const last30    = allData.slice(-30);
+  const last30    = targetData.slice(-30);
   const showTrend = document.getElementById('chkTrendlines').checked;
   const labels    = last30.map(d => fmtShortDate(d.date));
   const datasets  = buildTrendDatasets(last30, showTrend, 7);
@@ -1875,10 +2019,11 @@ function renderLast30Chart(){
 }
 
 /* ---- Other charts ---- */
-function renderHourChart(){
+function renderHourChart(patients){
+  const targetPatients = patients || allPatients;
   destroyChart('hour');
   const totals=new Array(24).fill(0),low=new Array(24).fill(0);
-  allPatients.forEach(p=>{
+  targetPatients.forEach(p=>{
     if(!p.time)return;
     const c = p.count||1;
     totals[p.time.hour] += c;
@@ -1892,14 +2037,15 @@ function renderHourChart(){
     ]},
     options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}
   });
-  document.getElementById('hourInsight').innerHTML = generateHourInsight(allPatients);
+  document.getElementById('hourInsight').innerHTML = generateHourInsight(targetPatients);
 }
 
-function renderDowChart(){
+function renderDowChart(patients){
+  const targetPatients = patients || allPatients;
   destroyChart('dow');
   const names=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const totals=new Array(7).fill(0),low=new Array(7).fill(0);
-  allPatients.forEach(p=>{
+  targetPatients.forEach(p=>{
     if(!p.date)return;
     const c = p.count||1;
     totals[p.date.getDay()] += c;
@@ -1912,11 +2058,12 @@ function renderDowChart(){
     ]},
     options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}
   });
-  document.getElementById('dowInsight').innerHTML = generateDowInsight(allPatients);
+  document.getElementById('dowInsight').innerHTML = generateDowInsight(targetPatients);
 }
 
-function renderDailyTable(){
-  document.getElementById('dailyTableBody').innerHTML=allData.map(d=>`
+function renderDailyTable(data){
+  const targetData = data || allData;
+  document.getElementById('dailyTableBody').innerHTML=targetData.map(d=>`
     <tr>
       <td>${fmtDate(d.date)}</td><td>${d.sheetUsed||''}</td><td>${d.census}</td>
       <td><b>${d.trainees}</b></td><td>${d.medscreen}</td><td>${d.lwobs}</td>
@@ -1956,10 +2103,11 @@ function getERUsageText(acuity, count) {
   return 'Unknown';
 }
 
-function renderPatientTable(){
+function renderPatientTable(patients){
+  const targetPatients = patients || allPatients;
   const colorMap={red:'#fde0e0',orange:'#ffe7c2',green:'#dff5d8',unknown:'#f0f0f0'};
   const labelMap={red:'Cat 1 🔴',orange:'Cat 2/3 🟠',green:'Cat 4/5 🟢',unknown:'Unknown ⚪'};
-  const sorted=allPatients.slice().sort((a,b)=>{
+  const sorted=targetPatients.slice().sort((a,b)=>{
     const dd=(a.date||0)-(b.date||0);if(dd)return dd;
     const ah=a.time?a.time.hour*60+a.time.minute:0,bh=b.time?b.time.hour*60+b.time.minute:0;
     return ah-bh;
@@ -1979,6 +2127,9 @@ async function clearAll() {
 
   allData = [];
   allPatients = [];
+  globalState.loIdx = null;
+  globalState.hiIdx = null;
+  globalDateList = [];
   Object.keys(charts).forEach(destroyChart);
   fi.value = '';
   debugLines = [];
@@ -2186,6 +2337,7 @@ function downloadDataJSON() {
 }
 
 /* ---- One-time wiring ---- */
+globalWireSlider();
 uvWireSlider();
 initFirebase();
 loadPersistentData();
