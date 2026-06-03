@@ -43,6 +43,51 @@
   canvas { max-height: 400px; }
   .swatch { display: inline-block; width: 12px; height: 12px; border: 1px solid #888; vertical-align: middle; margin-right: 4px; }
 
+  /* Brigade summary cards for Unit Volume Over Time block */
+  .uv-stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 12px;
+    margin: 15px 0 20px 0;
+  }
+  .uv-stat-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 12px 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .uv-stat-card-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+  .uv-stat-card-body {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .uv-stat-metric {
+    display: flex;
+    flex-direction: column;
+  }
+  .uv-stat-metric .num {
+    font-size: 20px;
+    font-weight: 800;
+    color: #111;
+  }
+  .uv-stat-metric .sub {
+    font-size: 9px;
+    color: #666;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
   /* Badges for ER Usage & Impact */
   .badge {
     display: inline-block;
@@ -267,6 +312,7 @@
     <!-- ===== NEW: Unit Volume Over Time (replaces old battalion stacked bar) ===== -->
     <div class="panel">
       <h3>Unit Volume Over Time — BDE / BN / CO Drill-Down</h3>
+      <div class="uv-stats-row" id="uvStatsRow"></div>
 
       <div class="uv-toolbar">
         <div class="uv-block" style="flex:1; min-width:260px;">
@@ -1507,6 +1553,65 @@ function uvWireSlider() {
   hi.addEventListener('input', onInput);
 }
 
+function renderUnitVolumeStats() {
+  const container = document.getElementById('uvStatsRow');
+  if (!container) return;
+
+  // Determine the 30-day window dates matching the Last 30 Days chart
+  const last30Days = allData.slice(-30);
+  if (!last30Days.length) {
+    container.innerHTML = '<div style="font-size:12px;color:#666;padding:10px;">No data loaded to compute last 30 days statistics.</div>';
+    return;
+  }
+
+  const loTs = new Date(last30Days[0].date).getTime();
+  const hiTs = new Date(last30Days[last30Days.length - 1].date).getTime();
+
+  // Filter patients: within 30-day window, low acuity (Cat 4/5 ESI)
+  const greenPatients = allPatients.filter(p => {
+    if (!p.date || p.acuity !== 'green') return false;
+    const dts = p.date.getTime();
+    return dts >= loTs && dts <= hiTs;
+  });
+
+  const bdeColors = {
+    '3rd Chemical BDE': '#4b5320',
+    '14th Military Police BDE': '#c1272d',
+    '1st Engineer BDE': '#2e8b2e',
+    '43rd Reception BN': '#e69500',
+    'Other Units': '#3d6e9c'
+  };
+
+  // Compile stats for each Brigade in fixed BDE_ORDER
+  const cardsHtml = BDE_ORDER.map(bde => {
+    const trainees = greenPatients
+      .filter(p => p.bde === bde)
+      .reduce((sum, p) => sum + (p.count || 1), 0);
+    
+    // Time loss formula: (2.4h ER + 1.5h Transport) * 2 Battle Buddy = 7.8 hours lost per visit
+    const hoursLost = Math.round(trainees * 7.8);
+    const color = bdeColors[bde] || '#333';
+
+    return `
+      <div class="uv-stat-card" style="border-left: 5px solid ${color};">
+        <div class="uv-stat-card-title" style="color: ${color};">${bde}</div>
+        <div class="uv-stat-card-body">
+          <div class="uv-stat-metric">
+            <span class="num">${trainees}</span>
+            <span class="sub">Inappropriate Trainees (30d)</span>
+          </div>
+          <div class="uv-stat-metric" style="text-align: right;">
+            <span class="num" style="color: #a04000;">${hoursLost}h</span>
+            <span class="sub">Training Hours Lost</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = cardsHtml;
+}
+
 /* Core: compute datasets for current state and render */
 function renderUnitVolumeChart() {
   destroyChart('unitVolume');
@@ -1837,6 +1942,7 @@ function render(){
   globalBuildDateSlider();
   uvBuildDateSlider();
   renderUnitVolumeChart();
+  renderUnitVolumeStats();
   renderFilteredResults();
 }
 
