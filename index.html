@@ -572,6 +572,21 @@ function looksLikeName(s) {
   return NAME_REGEX.test(str);
 }
 
+function getInitials(name) {
+  if (!name) return 'Trainee';
+  const str = String(name).trim();
+  const commaIdx = str.indexOf(',');
+  if (commaIdx !== -1) {
+    const lastName = str.substring(0, commaIdx).trim();
+    const firstName = str.substring(commaIdx + 1).trim();
+    const l = lastName.length > 0 ? lastName[0] + '.' : '';
+    const f = firstName.length > 0 ? firstName[0] + '.' : '';
+    return (l + ' ' + f).trim();
+  }
+  const parts = str.split(/\s+/);
+  return parts.map(p => p.length > 0 ? p[0] + '.' : '').filter(Boolean).join(' ');
+}
+
 /* ---- Theme / color helpers ---- */
 const DEFAULT_THEME_COLORS = ['FFFFFF','000000','E7E6E6','44546A','4472C4','ED7D31','A5A5A5','FFC000','5B9BD5','70AD47'];
 const INDEXED_COLORS = {
@@ -981,16 +996,16 @@ function parseSheet(best,date,filename){
     let acuity=classifyHex(fillHex);
     if(!acuity)acuity='unknown';
 
-    // Highlight unit anomalies in the debug log for the user to troubleshoot
+    // Highlight unit anomalies in the debug log for the user to troubleshoot (de-identified log)
     if (bde === 'Other Units') {
-      dbg(`    ⚠ Parsing Anomaly: Trainee "${escapeHtml(nameCell.str)}" resolved to "Other Units" (Raw unit cell: "${escapeHtml(unitCell ? unitCell.str : '')}")`, 'warn');
+      dbg(`    ⚠ Parsing Anomaly: Trainee "${escapeHtml(getInitials(nameCell.str))}" resolved to "Other Units" (Raw unit cell: "${escapeHtml(unitCell ? unitCell.str : '')}")`, 'warn');
     }
 
     const displayTime=timeParsed?timeToStr(timeParsed):(timeCell.str||'');
     patients.push({
       timeStr: displayTime,
       time: timeParsed,
-      rawName: nameCell.str, // keep raw name temporarily for browser debug logs only
+      initials: getInitials(nameCell.str), // keep initials only for HIPAA compliant browser debug logs
       company,
       battalion,
       bde,
@@ -999,8 +1014,8 @@ function parseSheet(best,date,filename){
     });
   }
 
-  // Temporary browser-only logging for the user to verify imports
-  dbg('  ── Trainees Loaded (Raw Names) ──','info');
+  // Temporary browser-only logging for the user to verify imports (initials only to preserve HIPAA compliance)
+  dbg('  ── Trainees Loaded (Initials Only) ──','info');
   patients.forEach((p,idx)=>{
     const sw=p.fillHex
       ?`<span class="swatch" style="background:#${p.fillHex}"></span>#${p.fillHex}`
@@ -1009,7 +1024,7 @@ function parseSheet(best,date,filename){
     const unitLabel=(p.company||'?')+(p.battalion||'?')+' ['+p.bde+']';
     dbg('    T'+(idx+1).toString().padStart(2,'0')+': '+
         escapeHtml(p.timeStr.padEnd(10))+'  '+
-        escapeHtml((p.rawName+' '+unitLabel).padEnd(45))+'  '+
+        escapeHtml((p.initials+' '+unitLabel).padEnd(45))+'  '+
         sw+' → <b>'+p.acuity+'</b>',cls);
   });
 
