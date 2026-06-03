@@ -1850,11 +1850,17 @@ function avgOver(data, key) {
 function renderAggStats(data){
   const targetData = data || allData;
   const last7 = targetData.slice(-7);
+  
+  const avgCensus = parseFloat(avgOver(targetData, 'census')) || 0;
+  const avgLwobs = parseFloat(avgOver(targetData, 'lwobs')) || 0;
+  const pctLwobs = avgCensus > 0 ? ((avgLwobs / avgCensus) * 100).toFixed(1) + '%' : '0.0%';
+
   const stats=[
     ['Days Loaded',                targetData.length],
     ['Avg Census / Day',           avgOver(targetData, 'census')],
     ['Avg Trainees / Day',         avgOver(targetData, 'trainees')],
     ['Avg LWOBS / Day',            avgOver(targetData, 'lwobs')],
+    ['% Avg LWOBS / Census',       pctLwobs],
     ['Avg Cat 4/5 / Day',          avgOver(targetData, 'cat45')],
     ['Avg Trainees (Last 7 Days)', avgOver(last7,   'trainees')],
     ['Avg Cat 4/5 (Last 7 Days)',  avgOver(last7,   'cat45')],
