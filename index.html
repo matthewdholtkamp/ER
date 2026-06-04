@@ -102,7 +102,7 @@
     transition: all 0.2s ease;
     border-radius: var(--radius);
   }
-  .drop-zone:hover, .drop-zone.dragover { background: var(--bg-card-hover); color: var(--army-green); border-color: var(--gold); }
+  .drop-zone:hover, .drop-zone.dragover { background: var(--gold); color: #000; border-color: #000; }
   .drop-zone .hint { font-size: 12px; font-weight: normal; color: var(--text-muted); margin-top: 8px; text-transform: none; }
   
   .controls { margin-top: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -149,8 +149,8 @@
   
   .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 20px; }
   .stat {
-    background: var(--bg-card);
-    color: var(--text-primary);
+    background: #000;
+    color: var(--gold);
     padding: 16px;
     text-align: center;
     border: 1px solid var(--border-subtle);
@@ -158,8 +158,8 @@
     border-radius: var(--radius);
     box-shadow: var(--shadow);
   }
-  .stat .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 700; }
-  .stat .value { font-size: 26px; font-weight: 800; margin-top: 4px; color: var(--army-green); }
+  .stat .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; font-weight: 700; }
+  .stat .value { font-size: 26px; font-weight: 800; margin-top: 4px; color: var(--gold); }
   
   table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; border-radius: var(--radius); overflow: hidden; }
   th {
@@ -1731,6 +1731,14 @@ function renderUnitVolumeStats() {
     'Other Units': '#3d6e9c'
   };
 
+  const bdeBgColors = {
+    '3rd Chemical BDE': 'rgba(75, 83, 32, 0.06)',
+    '14th Military Police BDE': 'rgba(193, 39, 45, 0.06)',
+    '1st Engineer BDE': 'rgba(46, 139, 46, 0.06)',
+    '43rd Reception BN': 'rgba(230, 149, 0, 0.06)',
+    'Other Units': 'rgba(61, 110, 156, 0.06)'
+  };
+
   // Compile stats for each Brigade in fixed BDE_ORDER
   const cardsHtml = BDE_ORDER.map(bde => {
     const trainees = greenPatients
@@ -1740,9 +1748,10 @@ function renderUnitVolumeStats() {
     // Time loss formula: (2.4h ER + 1.5h Transport) * 2 Battle Buddy = 7.8 hours lost per visit
     const hoursLost = Math.round(trainees * 7.8);
     const color = bdeColors[bde] || '#333';
+    const bgColor = bdeBgColors[bde] || 'rgba(0, 0, 0, 0.03)';
 
     return `
-      <div class="uv-stat-card" style="border-left: 5px solid ${color};">
+      <div class="uv-stat-card" style="border-left: 5px solid ${color}; background-color: ${bgColor};">
         <div class="uv-stat-card-title" style="color: ${color};">${bde}</div>
         <div class="uv-stat-card-body">
           <div class="uv-stat-metric">
