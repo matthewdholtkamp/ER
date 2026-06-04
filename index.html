@@ -3,47 +3,182 @@
 <head>
 <meta charset="UTF-8">
 <title>GLWACH ER Commander's Report Tracker</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="jszip.min.js"></script>
 <script src="chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <style>
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f4f5f2;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f9faf8;
+    --border-subtle: rgba(0,0,0,0.08);
+    --border-accent: rgba(255,184,28,0.4);
+    --gold: #FFB81C;
+    --gold-light: #c9951a;
+    --army-green: #313a2d;
+    --army-green-light: #46523f;
+    --text-primary: #000000;
+    --text-secondary: #222222;
+    --text-muted: #5e645d;
+    --radius: 8px;
+    --shadow: 0 4px 16px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.02);
+    --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, Helvetica, sans-serif; background: #f4f4f4; color: #1a1a1a; line-height: 1.4; }
-  .top-bar { background: #000; color: #fff; padding: 6px 20px; font-size: 12px; border-bottom: 3px solid #FFCC01; }
-  .header { background: #000; color: #fff; padding: 18px 20px; display: flex; align-items: center; border-bottom: 4px solid #FFCC01; }
-  .header .star { color: #FFCC01; font-size: 36px; margin-right: 16px; }
-  .header h1 { font-size: 22px; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
-  .header h2 { font-size: 13px; color: #FFCC01; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; font-weight: normal; }
-  .subheader { background: #4b5320; color: #fff; padding: 8px 20px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
-  .container { max-width: 1400px; margin: 20px auto; padding: 0 20px; }
-  .drop-zone { border: 3px dashed #4b5320; background: #fff; padding: 40px; text-align: center; color: #4b5320; font-size: 18px; font-weight: bold; text-transform: uppercase; cursor: pointer; transition: all 0.2s; border-radius: 4px; }
-  .drop-zone:hover, .drop-zone.dragover { background: #FFCC01; color: #000; border-color: #000; }
-  .drop-zone .hint { font-size: 13px; font-weight: normal; color: #666; margin-top: 8px; text-transform: none; }
+  body {
+    font-family: var(--font-body);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    line-height: 1.5;
+  }
+
+  /* ===== ANIMATED BACKGROUND ===== */
+  .bg-grid {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(200,168,78,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(200,168,78,0.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .bg-gradient {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: linear-gradient(180deg, rgba(255,184,28,0.025), transparent 34%);
+  }
+
+  .top-bar {
+    background: #000;
+    color: #fff;
+    padding: 8px 20px;
+    font-size: 11px;
+    font-weight: bold;
+    border-bottom: 2px solid var(--gold);
+    letter-spacing: 0.5px;
+    position: relative;
+    z-index: 1;
+  }
+  .header {
+    background: var(--army-green);
+    color: #fff;
+    padding: 24px 20px;
+    display: flex;
+    align-items: center;
+    border-bottom: 3px solid var(--gold);
+    position: relative;
+    z-index: 1;
+  }
+  .header .star { color: var(--gold); font-size: 32px; margin-right: 16px; }
+  .header h1 { font-size: 22px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold; font-family: var(--font-display); }
+  .header h2 { font-size: 13px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; font-weight: normal; font-family: var(--font-display); }
+  .subheader {
+    background: var(--army-green-light);
+    color: #fff;
+    padding: 8px 20px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+    position: relative;
+    z-index: 1;
+  }
+  .container { max-width: 1400px; margin: 20px auto; padding: 0 20px; position: relative; z-index: 1; }
+  
+  .drop-zone {
+    border: 2px dashed var(--army-green);
+    background: var(--bg-card);
+    padding: 40px;
+    text-align: center;
+    color: var(--army-green);
+    font-size: 16px;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: var(--radius);
+  }
+  .drop-zone:hover, .drop-zone.dragover { background: var(--bg-card-hover); color: var(--army-green); border-color: var(--gold); }
+  .drop-zone .hint { font-size: 12px; font-weight: normal; color: var(--text-muted); margin-top: 8px; text-transform: none; }
+  
   .controls { margin-top: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  button { background: #4b5320; color: #fff; border: none; padding: 8px 16px; cursor: pointer; font-weight: bold; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; border-radius: 2px; }
-  button:hover { background: #000; color: #FFCC01; }
-  .file-list { margin-top: 8px; font-size: 12px; color: #555; }
-  .panel { background: #fff; margin-top: 20px; padding: 20px; border-left: 4px solid #FFCC01; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-  .panel h3 { color: #000; font-size: 16px; text-transform: uppercase; border-bottom: 2px solid #4b5320; padding-bottom: 6px; margin-bottom: 14px; letter-spacing: 1px; }
+  
+  button {
+    background: var(--army-green);
+    color: #fff;
+    border: 1px solid transparent;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    border-radius: var(--radius);
+    transition: all 0.15s ease;
+  }
+  button:hover { background: #000; color: var(--gold); }
+  
+  .file-list { margin-top: 8px; font-size: 12px; color: var(--text-muted); }
+  
+  .panel {
+    background: var(--bg-card);
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid var(--border-subtle);
+    border-left: 4px solid var(--gold);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .panel h3 {
+    color: var(--text-primary);
+    font-size: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--border-subtle);
+    padding-bottom: 6px;
+    margin-bottom: 14px;
+    letter-spacing: 0.5px;
+    font-family: var(--font-display);
+  }
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
   @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  
   .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 20px; }
-  .stat { background: #000; color: #FFCC01; padding: 14px; text-align: center; border-bottom: 3px solid #FFCC01; }
-  .stat .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #fff; }
-  .stat .value { font-size: 28px; font-weight: bold; margin-top: 4px; color: #FFCC01; }
-  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-  th { background: #000; color: #FFCC01; padding: 8px; text-align: left; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; border: 1px solid #333; }
-  td { padding: 6px 8px; border: 1px solid #ddd; }
-  tr:nth-child(even) td { background: #f9f9f9; }
+  .stat {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    padding: 16px;
+    text-align: center;
+    border: 1px solid var(--border-subtle);
+    border-bottom: 3px solid var(--gold);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .stat .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 700; }
+  .stat .value { font-size: 26px; font-weight: 800; margin-top: 4px; color: var(--army-green); }
+  
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; border-radius: var(--radius); overflow: hidden; }
+  th {
+    background: var(--army-green);
+    color: #fff;
+    padding: 10px 12px;
+    text-align: left;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    border: 1px solid var(--border-subtle);
+  }
+  td { padding: 8px 12px; border: 1px solid var(--border-subtle); color: var(--text-secondary); }
+  tr:nth-child(even) td { background: var(--bg-card-hover); }
   #patientTable td { background: inherit; }
-  .empty-state { text-align: center; padding: 40px; color: #888; font-style: italic; }
-  .footer { text-align: center; color: #555; font-size: 11px; padding: 20px; margin-top: 30px; border-top: 1px solid #ccc; }
+  .empty-state { text-align: center; padding: 40px; color: var(--text-muted); font-style: italic; }
+  .footer { text-align: center; color: var(--text-muted); font-size: 11px; padding: 20px; margin-top: 30px; border-top: 1px solid var(--border-subtle); }
   canvas { max-height: 400px; }
-  .swatch { display: inline-block; width: 12px; height: 12px; border: 1px solid #888; vertical-align: middle; margin-right: 4px; }
-
-
+  .swatch { display: inline-block; width: 12px; height: 12px; border: 1px solid var(--border-subtle); vertical-align: middle; margin-right: 4px; }
 
   /* Brigade summary cards for Unit Volume Over Time block */
   .uv-stats-row {
@@ -53,11 +188,11 @@
     margin: 15px 0 20px 0;
   }
   .uv-stat-card {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius);
     padding: 12px 14px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: var(--shadow);
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -81,11 +216,11 @@
   .uv-stat-metric .num {
     font-size: 20px;
     font-weight: 800;
-    color: #111;
+    color: var(--text-primary);
   }
   .uv-stat-metric .sub {
     font-size: 9px;
-    color: #666;
+    color: var(--text-muted);
     text-transform: uppercase;
     font-weight: 600;
   }
@@ -116,62 +251,63 @@
   /* Trend controls */
   .trend-controls {
     display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
-    margin-bottom: 12px; padding: 8px 12px; background: #f9f9f9;
-    border: 1px solid #ddd; border-radius: 4px;
+    margin-bottom: 12px; padding: 8px 12px; background: var(--bg-card-hover);
+    border: 1px solid var(--border-subtle); border-radius: var(--radius);
   }
   .trend-controls label { font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 6px; cursor: pointer; }
   .trend-controls input[type=checkbox] { width: 14px; height: 14px; cursor: pointer; }
   .chart-badge {
-    margin-left: auto; background: #4b5320; color: #fff;
-    padding: 3px 10px; border-radius: 10px; font-size: 11px;
-    font-weight: bold; text-transform: uppercase; letter-spacing: 1px;
+    margin-left: auto; background: var(--army-green); color: #fff;
+    padding: 3px 10px; border-radius: 20px; font-size: 10px;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
   }
 
   /* Chart insight box */
   .chart-insight {
-    margin-top: 10px; padding: 10px 14px;
-    background: #f0f4e8; border-left: 4px solid #4b5320;
-    border-radius: 2px; font-size: 13px; color: #1a1a1a;
-    line-height: 1.6;
+    margin-top: 10px; padding: 12px 16px;
+    background: var(--bg-card-hover); border: 1px solid var(--border-subtle);
+    border-left: 4px solid var(--army-green);
+    border-radius: var(--radius); font-size: 13px; color: var(--text-secondary);
+    line-height: 1.5;
   }
-  .chart-insight strong { color: #4b5320; }
+  .chart-insight strong { color: var(--army-green); }
 
   /* Unit Volume panel specific */
   .uv-toolbar {
     display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start;
-    margin-bottom: 14px; padding: 12px 14px; background: #f9f9f9;
-    border: 1px solid #ddd; border-radius: 4px;
+    margin-bottom: 14px; padding: 12px 14px; background: var(--bg-card-hover);
+    border: 1px solid var(--border-subtle); border-radius: var(--radius);
   }
   .uv-block { display: flex; flex-direction: column; gap: 6px; }
   .uv-block > .uv-block-title {
-    font-size: 10px; font-weight: bold; text-transform: uppercase;
-    letter-spacing: 1px; color: #4b5320;
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-muted);
   }
   .uv-breadcrumb { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 13px; }
   .uv-crumb {
-    background: #4b5320; color: #fff; padding: 4px 10px; border-radius: 12px;
-    font-size: 12px; font-weight: bold; cursor: pointer; border: none;
-    text-transform: none; letter-spacing: normal;
+    background: var(--army-green-light); color: #fff; padding: 4px 12px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; cursor: pointer; border: none;
+    text-transform: none; letter-spacing: normal; transition: all 0.15s ease;
   }
-  .uv-crumb:hover { background: #000; color: #FFCC01; }
-  .uv-crumb.current { background: #FFCC01; color: #000; cursor: default; }
-  .uv-crumb.current:hover { background: #FFCC01; color: #000; }
-  .uv-sep { color: #888; font-weight: bold; }
+  .uv-crumb:hover { background: #000; color: var(--gold); }
+  .uv-crumb.current { background: var(--gold); color: #000; cursor: default; }
+  .uv-crumb.current:hover { background: var(--gold); color: #000; }
+  .uv-sep { color: var(--text-muted); font-weight: bold; }
   .uv-esi-row { display: flex; gap: 14px; flex-wrap: wrap; }
   .uv-esi-row label { font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px; cursor: pointer; }
   .uv-esi-row input[type=checkbox] { width: 14px; height: 14px; cursor: pointer; }
   .uv-gran-row { display: flex; gap: 6px; }
   .uv-gran-btn {
-    padding: 5px 12px; font-size: 11px; background: #fff; color: #4b5320;
-    border: 1px solid #4b5320; border-radius: 2px; cursor: pointer;
-    text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;
+    padding: 6px 12px; font-size: 11px; background: var(--bg-primary); color: var(--army-green);
+    border: 1px solid var(--border-subtle); border-radius: var(--radius); cursor: pointer;
+    text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; transition: all 0.15s ease;
   }
-  .uv-gran-btn.active { background: #4b5320; color: #fff; }
-  .uv-gran-btn:hover { background: #000; color: #FFCC01; border-color: #000; }
+  .uv-gran-btn.active { background: var(--army-green); color: #fff; border-color: var(--army-green); }
+  .uv-gran-btn:hover { background: #000; color: var(--gold); border-color: #000; }
   .uv-date-row { display: flex; flex-direction: column; gap: 4px; min-width: 320px; flex: 1; }
   .uv-slider-wrap { position: relative; height: 34px; }
-  .uv-slider-track { position: absolute; top: 14px; left: 0; right: 0; height: 6px; background: #ddd; border-radius: 3px; }
-  .uv-slider-range { position: absolute; top: 14px; height: 6px; background: #4b5320; border-radius: 3px; }
+  .uv-slider-track { position: absolute; top: 14px; left: 0; right: 0; height: 6px; background: var(--border-subtle); border-radius: 3px; }
+  .uv-slider-range { position: absolute; top: 14px; height: 6px; background: var(--army-green); border-radius: 3px; }
   .uv-slider-wrap input[type=range] {
     position: absolute; top: 6px; left: 0; width: 100%; margin: 0;
     -webkit-appearance: none; appearance: none; background: none;
@@ -179,33 +315,39 @@
   }
   .uv-slider-wrap input[type=range]::-webkit-slider-thumb {
     -webkit-appearance: none; appearance: none; pointer-events: auto;
-    width: 18px; height: 18px; border-radius: 50%; background: #FFCC01;
-    border: 2px solid #4b5320; cursor: pointer;
+    width: 18px; height: 18px; border-radius: 50%; background: var(--gold);
+    border: 2px solid var(--army-green); cursor: pointer; transition: all 0.15s ease;
   }
+  .uv-slider-wrap input[type=range]::-webkit-slider-thumb:hover { background: #fff; }
   .uv-slider-wrap input[type=range]::-moz-range-thumb {
     pointer-events: auto; width: 18px; height: 18px; border-radius: 50%;
-    background: #FFCC01; border: 2px solid #4b5320; cursor: pointer;
+    background: var(--gold); border: 2px solid var(--army-green); cursor: pointer; transition: all 0.15s ease;
   }
-  .uv-date-labels { display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; color: #1a1a1a; }
-  .uv-date-labels .sub { font-size: 10px; color: #888; font-weight: normal; }
+  .uv-slider-wrap input[type=range]::-moz-range-thumb:hover { background: #fff; }
+  .uv-date-labels { display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; color: var(--text-primary); }
+  .uv-date-labels .sub { font-size: 10px; color: var(--text-muted); font-weight: normal; }
 
   /* Collapsible debug section */
-  .collapsible { background: #fff; margin-top: 20px; border-left: 4px solid #FFCC01; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
-  .collapsible-header { background: #000; color: #FFCC01; padding: 12px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; text-transform: uppercase; font-size: 13px; letter-spacing: 1px; font-weight: bold; }
-  .collapsible-header:hover { background: #1a1a1a; }
+  .collapsible { background: var(--bg-card); margin-top: 20px; border: 1px solid var(--border-subtle); border-left: 4px solid var(--gold); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .collapsible-header { background: var(--army-green); color: #fff; padding: 12px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; font-weight: 700; transition: all 0.15s ease; }
+  .collapsible-header:hover { background: #000; color: var(--gold); }
   .collapsible-header .arrow { transition: transform 0.2s; font-size: 14px; }
   .collapsible.open .collapsible-header .arrow { transform: rotate(90deg); }
   .collapsible-body { display: none; padding: 16px 20px; }
   .collapsible.open .collapsible-body { display: block; }
   .debug-panel { background: #1a1a1a; color: #0f0; font-family: monospace; font-size: 11px; padding: 12px; border-radius: 4px; max-height: 600px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
   .debug-panel .err  { color: #ff6b6b; }
-  .debug-panel .warn { color: #FFCC01; }
+  .debug-panel .warn { color: var(--gold); }
   .debug-panel .info { color: #6cf; }
   .debug-panel .ok   { color: #6f6; }
-  .debug-empty { color: #888; font-style: italic; }
+  .debug-empty { color: var(--text-muted); font-style: italic; }
 </style>
 </head>
 <body>
+
+<!-- Background Grid Pattern -->
+<div class="bg-grid"></div>
+<div class="bg-gradient"></div>
 
 <div class="top-bar">MSCoE Division Surgeon Cell Product</div>
 <div class="header">
@@ -259,7 +401,7 @@
     <!-- Global Date Range Slider -->
     <div class="panel" style="margin-top: 20px;">
       <h3>Global Dashboard Date Range Filter</h3>
-      <div class="uv-toolbar" style="padding: 12px 14px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px;">
+      <div class="uv-toolbar" style="padding: 12px 14px; background: var(--bg-card-hover); border: 1px solid var(--border-subtle); border-radius: var(--radius);">
         <div class="uv-block uv-date-row" style="width: 100%; min-width: auto; flex: 1;">
           <span class="uv-block-title">Date Range (Applies to all charts & tables below)</span>
           <div class="uv-slider-wrap">
