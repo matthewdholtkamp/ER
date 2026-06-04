@@ -43,9 +43,7 @@
   canvas { max-height: 400px; }
   .swatch { display: inline-block; width: 12px; height: 12px; border: 1px solid #888; vertical-align: middle; margin-right: 4px; }
 
-  /* Top Split layout for Filter and Ingestion side-by-side */
-  .top-split { display: grid; grid-template-columns: 3fr 2fr; gap: 20px; margin-top: 20px; }
-  @media (max-width: 900px) { .top-split { grid-template-columns: 1fr; } }
+
 
   /* Brigade summary cards for Unit Volume Over Time block */
   .uv-stats-row {
@@ -221,62 +219,57 @@
 
 <div class="container">
 
-  <!-- TOP SPLIT: Filter (Left) & Ingestion (Right) -->
-  <div class="top-split">
-    <!-- Left Column: Global Date Filter -->
-    <div class="panel" style="margin-top: 0;">
-      <h3>Global Dashboard Date Range Filter</h3>
-      <div id="resultsFilter" style="display:none;">
-        <div class="uv-toolbar" style="padding: 12px 14px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px;">
-          <div class="uv-block uv-date-row" style="width: 100%; min-width: auto; flex: 1;">
-            <span class="uv-block-title">Date Range (Applies to all charts & tables below)</span>
-            <div class="uv-slider-wrap">
-              <div class="uv-slider-track"></div>
-              <div class="uv-slider-range" id="globalSliderRange"></div>
-              <input type="range" id="globalSliderLo" min="0" max="0" value="0">
-              <input type="range" id="globalSliderHi" min="0" max="0" value="0">
-            </div>
-            <div class="uv-date-labels">
-              <div><span id="globalDateLo">—</span><div class="sub">start</div></div>
-              <div style="text-align:right;"><span id="globalDateHi">—</span><div class="sub">end</div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div id="emptyFilterMsg" class="empty-state" style="padding: 20px; font-size: 13px;">
-        Date filter will activate once spreadsheets are imported on the right.
-      </div>
+  <!-- DATA MANAGEMENT & IMPORT SECTION (TOP OF PAGE) -->
+  <div class="panel" style="margin-top: 0;">
+    <h3>Data Management & File Import</h3>
+    
+    <div id="dropZone" class="drop-zone">
+      Drag & Drop Commander's Report .xlsx Files Here
+      <div class="hint">Multiple files supported. Filename must contain the date, e.g., 05-15-2026.xlsx</div>
+      <input type="file" id="fileInput" multiple accept=".xlsx,.xls" style="display:none">
     </div>
 
-    <!-- Right Column: Data Import / Drop Zone -->
-    <div class="panel" style="margin-top: 0;">
-      <h3>Data Management & File Import</h3>
-      <div id="dropZone" class="drop-zone" style="padding: 20px; font-size: 14px;">
-        Drag & Drop Commander's Report .xlsx Files Here
-        <div class="hint" style="font-size: 11px; margin-top: 4px;">Multiple files supported. Filename must contain the date, e.g., 05-15-2026.xlsx</div>
-        <input type="file" id="fileInput" multiple accept=".xlsx,.xls" style="display:none">
+    <div class="controls" style="margin-top: 15px;">
+      <button onclick="document.getElementById('fileInput').click()">Add Files</button>
+      <button onclick="clearAll()">Clear All</button>
+      <button id="btnExport" onclick="exportCSV()" style="display:none;">Export CSV</button>
+      <button id="btnSave" onclick="downloadDataJSON()" style="display:none;">Save Data File</button>
+      <span class="file-list" id="fileList">No files loaded.</span>
+    </div>
+
+    <!-- Collapsible File Log - HIDDEN FOR HIPAA COMPLIANCE -->
+    <div id="debugCollapsible" class="collapsible" style="display: none; margin-top: 15px;">
+      <div class="collapsible-header" onclick="toggleDebug()">
+        <span>File Log & Parsing Details</span>
+        <span class="arrow">▶</span>
       </div>
-      <div class="controls" style="margin-top: 10px;">
-        <button onclick="document.getElementById('fileInput').click()">Add Files</button>
-        <button onclick="clearAll()">Clear All</button>
-        <button id="btnExport" onclick="exportCSV()" style="display:none;">Export CSV</button>
-        <button id="btnSave" onclick="downloadDataJSON()" style="display:none;">Save Data File</button>
-        <span class="file-list" id="fileList" style="display: block; margin-top: 8px;">No files loaded.</span>
-      </div>
-      <!-- Collapsible File Log - HIDDEN FOR HIPAA COMPLIANCE -->
-      <div id="debugCollapsible" class="collapsible" style="display: none; margin-top: 10px;">
-        <div class="collapsible-header" onclick="toggleDebug()">
-          <span>File Log & Parsing Details</span>
-          <span class="arrow">▶</span>
-        </div>
-        <div class="collapsible-body">
-          <div id="debugPanel" class="debug-panel"><span class="debug-empty">No files parsed yet. Drop a file above to see parsing details.</span></div>
-        </div>
+      <div class="collapsible-body">
+        <div id="debugPanel" class="debug-panel"><span class="debug-empty">No files parsed yet. Drop a file above to see parsing details.</span></div>
       </div>
     </div>
   </div>
 
   <div id="results" style="display:none;">
+
+    <!-- Global Date Range Slider -->
+    <div class="panel" style="margin-top: 20px;">
+      <h3>Global Dashboard Date Range Filter</h3>
+      <div class="uv-toolbar" style="padding: 12px 14px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px;">
+        <div class="uv-block uv-date-row" style="width: 100%; min-width: auto; flex: 1;">
+          <span class="uv-block-title">Date Range (Applies to all charts & tables below)</span>
+          <div class="uv-slider-wrap">
+            <div class="uv-slider-track"></div>
+            <div class="uv-slider-range" id="globalSliderRange"></div>
+            <input type="range" id="globalSliderLo" min="0" max="0" value="0">
+            <input type="range" id="globalSliderHi" min="0" max="0" value="0">
+          </div>
+          <div class="uv-date-labels">
+            <div><span id="globalDateLo">—</span><div class="sub">start</div></div>
+            <div style="text-align:right;"><span id="globalDateHi">—</span><div class="sub">end</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div class="panel">
       <h3>Summary Statistics</h3>
@@ -1947,16 +1940,12 @@ function render(){
   if(!allData.length){
     document.getElementById('results').style.display='none';
     document.getElementById('emptyMsg').style.display='block';
-    document.getElementById('resultsFilter').style.display='none';
-    document.getElementById('emptyFilterMsg').style.display='block';
     document.getElementById('btnExport').style.display='none';
     document.getElementById('btnSave').style.display='none';
     return;
   }
   document.getElementById('results').style.display='block';
   document.getElementById('emptyMsg').style.display='none';
-  document.getElementById('resultsFilter').style.display='block';
-  document.getElementById('emptyFilterMsg').style.display='none';
   document.getElementById('btnExport').style.display='inline-block';
   document.getElementById('btnSave').style.display='inline-block';
   allData.sort((a,b)=>(a.date||0)-(b.date||0));
