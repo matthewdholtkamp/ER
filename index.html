@@ -217,31 +217,6 @@
 
 <div class="container">
 
-  <div id="dropZone" class="drop-zone">
-    Drag & Drop Commander's Report .xlsx Files Here
-    <div class="hint">Multiple files supported. Filename must contain the date, e.g., 05-15-2026.xlsx</div>
-    <input type="file" id="fileInput" multiple accept=".xlsx,.xls" style="display:none">
-  </div>
-
-  <div class="controls">
-    <button onclick="document.getElementById('fileInput').click()">Add Files</button>
-    <button onclick="clearAll()">Clear All</button>
-    <button onclick="exportCSV()">Export CSV</button>
-    <button onclick="downloadDataJSON()">Save Data File</button>
-    <span class="file-list" id="fileList">No files loaded.</span>
-  </div>
-
-  <!-- Collapsible File Log - HIDDEN FOR HIPAA COMPLIANCE -->
-  <div id="debugCollapsible" class="collapsible" style="display: none;">
-    <div class="collapsible-header" onclick="toggleDebug()">
-      <span>File Log & Parsing Details</span>
-      <span class="arrow">▶</span>
-    </div>
-    <div class="collapsible-body">
-      <div id="debugPanel" class="debug-panel"><span class="debug-empty">No files parsed yet. Drop a file above to see parsing details.</span></div>
-    </div>
-  </div>
-
   <div id="results" style="display:none;">
 
     <!-- Global Date Range Slider -->
@@ -397,7 +372,37 @@
   </div>
 
   <div id="emptyMsg" class="panel empty-state">
-    No data loaded. Drop one or more Commander's Report .xlsx files above to begin.
+    No data loaded. Drag and drop Commander's Report .xlsx files in the import section at the bottom of the page to begin.
+  </div>
+
+  <!-- DATA MANAGEMENT & IMPORT SECTION (BOTTOM OF PAGE) -->
+  <div class="panel" style="margin-top: 30px;">
+    <h3>Data Management & File Import</h3>
+    
+    <div id="dropZone" class="drop-zone">
+      Drag & Drop Commander's Report .xlsx Files Here
+      <div class="hint">Multiple files supported. Filename must contain the date, e.g., 05-15-2026.xlsx</div>
+      <input type="file" id="fileInput" multiple accept=".xlsx,.xls" style="display:none">
+    </div>
+
+    <div class="controls" style="margin-top: 15px;">
+      <button onclick="document.getElementById('fileInput').click()">Add Files</button>
+      <button onclick="clearAll()">Clear All</button>
+      <button onclick="exportCSV()">Export CSV</button>
+      <button onclick="downloadDataJSON()">Save Data File</button>
+      <span class="file-list" id="fileList">No files loaded.</span>
+    </div>
+
+    <!-- Collapsible File Log - HIDDEN FOR HIPAA COMPLIANCE -->
+    <div id="debugCollapsible" class="collapsible" style="display: none; margin-top: 15px;">
+      <div class="collapsible-header" onclick="toggleDebug()">
+        <span>File Log & Parsing Details</span>
+        <span class="arrow">▶</span>
+      </div>
+      <div class="collapsible-body">
+        <div id="debugPanel" class="debug-panel"><span class="debug-empty">No files parsed yet. Drop a file above to see parsing details.</span></div>
+      </div>
+    </div>
   </div>
 
 </div>
