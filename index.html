@@ -528,20 +528,25 @@
       <div class="chart-insight" id="unitVolumeInsight"></div>
     </div>
 
-    <div class="panel">
-      <h3>Daily Report Data</h3>
-      <div style="overflow-x:auto;">
-        <table id="dailyTable">
-          <thead>
-            <tr>
-              <th>Date</th><th>Sheet</th><th>Census</th><th>Trainees</th>
-              <th>Medscreen</th><th>LWOBS</th><th>AMA</th><th>Transfer</th>
-              <th>Admitted</th><th>Ambulance</th>
-              <th>Cat 1 🔴</th><th>Cat 2/3 🟠</th><th>Cat 4/5 🟢</th><th>Unknown ⚪</th><th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="dailyTableBody"></tbody>
-        </table>
+    <div id="dailyCollapsible" class="collapsible" style="margin-top: 20px;">
+      <div class="collapsible-header" onclick="toggleDailyTable()">
+        <span>Daily Report Data</span>
+        <span class="arrow">▶</span>
+      </div>
+      <div class="collapsible-body">
+        <div style="overflow-x:auto;">
+          <table id="dailyTable">
+            <thead>
+              <tr>
+                <th>Date</th><th>Sheet</th><th>Census</th><th>Trainees</th>
+                <th>Medscreen</th><th>LWOBS</th><th>AMA</th><th>Transfer</th>
+                <th>Admitted</th><th>Ambulance</th>
+                <th>Cat 1 🔴</th><th>Cat 2/3 🟠</th><th>Cat 4/5 🟢</th><th>Unknown ⚪</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="dailyTableBody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -616,6 +621,9 @@ function escapeHtml(s) {
 }
 function toggleDebug() {
   document.getElementById('debugCollapsible').classList.toggle('open');
+}
+function toggleDailyTable() {
+  document.getElementById('dailyCollapsible').classList.toggle('open');
 }
 function arr(nl) { return nl ? Array.from(nl) : []; }
 
