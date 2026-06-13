@@ -121,6 +121,23 @@
     transition: all 0.15s ease;
   }
   button:hover { background: #000; color: var(--gold); }
+  .btn-delete {
+    background: transparent;
+    color: #c00;
+    border: 1px solid rgba(204, 0, 0, 0.2);
+    padding: 3px 8px;
+    font-size: 11px;
+    text-transform: none;
+    cursor: pointer;
+    font-weight: 700;
+    border-radius: 4px;
+    transition: all 0.1s ease;
+  }
+  .btn-delete:hover {
+    background: #c00;
+    color: #fff;
+    border-color: #c00;
+  }
   
   .file-list { margin-top: 8px; font-size: 12px; color: var(--text-muted); }
   
@@ -520,7 +537,7 @@
               <th>Date</th><th>Sheet</th><th>Census</th><th>Trainees</th>
               <th>Medscreen</th><th>LWOBS</th><th>AMA</th><th>Transfer</th>
               <th>Admitted</th><th>Ambulance</th>
-              <th>Cat 1 🔴</th><th>Cat 2/3 🟠</th><th>Cat 4/5 🟢</th><th>Unknown ⚪</th>
+              <th>Cat 1 🔴</th><th>Cat 2/3 🟠</th><th>Cat 4/5 🟢</th><th>Unknown ⚪</th><th>Actions</th>
             </tr>
           </thead>
           <tbody id="dailyTableBody"></tbody>
@@ -2395,6 +2412,9 @@ function renderDailyTable(data){
       <td style="background:#ffe7c2;font-weight:bold">${d.cat23}</td>
       <td style="background:#dff5d8;font-weight:bold">${d.cat45}</td>
       <td style="background:#eee;font-weight:bold;color:${d.unknown?'#c00':'#888'}">${d.unknown}</td>
+      <td>
+        <button class="btn-delete" onclick="deleteDay('${d.date.toISOString()}')" title="Delete this day">✕</button>
+      </td>
     </tr>`).join('');
 }
 
@@ -2442,6 +2462,33 @@ function renderPatientTable(patients){
       <td>${labelMap[p.acuity]||'Unknown'}</td>
       <td>${getERUsageLabel(p.acuity, p.count)}</td>
     </tr>`).join('');
+}
+
+async function deleteDay(dateStr) {
+  const targetDate = new Date(dateStr);
+  const formattedDate = fmtDate(targetDate);
+  const confirmed = confirm(`Are you sure you want to delete the daily log for ${formattedDate}? This will permanently remove it from the dashboard and database.`);
+  if (!confirmed) return;
+
+  const targetIso = targetDate.toISOString().split('T')[0];
+  
+  allData = allData.filter(d => {
+    const dIso = d.date instanceof Date ? d.date.toISOString().split('T')[0] : String(d.date).split('T')[0];
+    return dIso !== targetIso;
+  });
+
+  allPatients = allPatients.filter(p => {
+    const pIso = p.date instanceof Date ? p.date.toISOString().split('T')[0] : String(p.date).split('T')[0];
+    return pIso !== targetIso;
+  });
+
+  dbg(`Deleted daily log for ${formattedDate}`, 'ok');
+
+  render();
+
+  if (syncEnabled) {
+    await uploadToFirestore();
+  }
 }
 
 async function clearAll() {
