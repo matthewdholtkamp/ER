@@ -1084,7 +1084,7 @@ function scoreSheet(tokens){
   if(!tokens.length)return 0;
   let score=tokens.length,hasCheckIn=false,hasCensus=false,timeCount=0,nameCount=0,fillCount=0;
   for(const t of tokens){
-    if(/check.?in\s*time/i.test(t.str))hasCheckIn=true;
+    if(/check.?in(\s*time)?/i.test(t.str))hasCheckIn=true;
     if(/^census$/i.test(t.str))hasCensus=true;
     if(parseTime(t.str)||(typeof t.value==='number'&&t.value>0&&t.value<1))timeCount++;
     if(looksLikeName(t.str))nameCount++;
@@ -1173,7 +1173,7 @@ function parseSheet(best,date,filename){
     if(!grid[r])continue;
     for(let c=0;c<=maxCol;c++){
       const cell=grid[r][c];
-      if(cell&&/check.?in\s*time/i.test(cell.str)){checkInCell=cell;break;}
+      if(cell&&/check.?in(\s*time)?/i.test(cell.str)){checkInCell=cell;break;}
     }
   }
   if(!checkInCell){
