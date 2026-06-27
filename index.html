@@ -2200,12 +2200,15 @@ function destroyChart(id){if(charts[id]){charts[id].destroy();delete charts[id];
    ========================================================== */
 
 const TREND_METRICS=[
-  {key:'census',   label:'Census',   color:'#000000'},
-  {key:'trainees', label:'Trainees', color:'#4b5320'},
-  {key:'cat45',    label:'Cat 4/5',  color:'#2e8b2e'},
-  {key:'cat23',    label:'Cat 2/3',  color:'#e69500'},
-  {key:'cat1',     label:'Cat 1',    color:'#c1272d'},
-  {key:'lwobs',    label:'LWOBS',    color:'#b8860b'},
+  {key:'census',    label:'Census',    color:'#000000'},
+  {key:'trainees',  label:'Trainees',  color:'#4b5320'},
+  {key:'cat45',     label:'Cat 4/5',   color:'#2e8b2e'},
+  {key:'cat23',     label:'Cat 2/3',   color:'#e69500'},
+  {key:'cat1',      label:'Cat 1',     color:'#c1272d'},
+  {key:'lwobs',     label:'LWOBS',     color:'#b8860b'},
+  {key:'transfer',  label:'Transfers', color:'#1f6feb'},
+  {key:'admitted',  label:'Admissions',color:'#8957e5'},
+  {key:'ambulance', label:'Ambulance', color:'#00868b'},
 ];
 
 function smoothRollingAverage(values, windowSize){
