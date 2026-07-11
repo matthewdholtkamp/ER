@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>GLWACH ER Commander's Report Tracker</title>
+<link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -162,7 +163,7 @@
     font-family: var(--font-display);
   }
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  @media (max-width: 900px) { .grid { grid-template-columns: minmax(0, 1fr); } }
   
   .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 20px; }
   .stat {
@@ -202,7 +203,24 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
     gap: 12px;
-    margin: 15px 0 20px 0;
+    margin: 8px 0 20px 0;
+  }
+  .uv-stats-context {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 14px;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .uv-stats-context strong { color: var(--army-green); }
+  .uv-stats-context .range { text-align: right; }
+  .uv-stats-row.has-selection .uv-stat-card {
+    opacity: .48;
+    filter: saturate(.65);
+    transform: scale(.985);
   }
   .uv-stat-card {
     background: var(--bg-card);
@@ -213,6 +231,15 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
+    transition: opacity .18s ease, filter .18s ease, transform .18s ease, box-shadow .18s ease;
+  }
+  .uv-stats-row.has-selection .uv-stat-card.is-selected {
+    opacity: 1;
+    filter: none;
+    transform: translateY(-2px);
+    box-shadow: 0 7px 18px rgba(75, 83, 32, .24);
+    outline: 2px solid var(--gold);
+    outline-offset: 1px;
   }
   .uv-stat-card-title {
     font-size: 11px;
@@ -225,10 +252,12 @@
     display: flex;
     justify-content: space-between;
     align-items: baseline;
+    gap: 12px;
   }
   .uv-stat-metric {
     display: flex;
     flex-direction: column;
+    min-width: 0;
   }
   .uv-stat-metric .num {
     font-size: 20px;
@@ -295,6 +324,21 @@
     margin-bottom: 14px; padding: 12px 14px; background: var(--bg-card-hover);
     border: 1px solid var(--border-subtle); border-radius: var(--radius);
   }
+  .uv-toolbar.unit-controls {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 16px 18px;
+    align-items: stretch;
+  }
+  .unit-controls .uv-drill-block { grid-column: span 4; }
+  .unit-controls .uv-gran-block { grid-column: span 3; }
+  .unit-controls .uv-esi-block { grid-column: span 5; }
+  .unit-controls .uv-date-row { grid-column: 1 / -1; }
+  .unit-controls > .uv-block:not(.uv-date-row) {
+    min-width: 0;
+    padding: 2px 0 8px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
   .uv-block { display: flex; flex-direction: column; gap: 6px; }
   .uv-block > .uv-block-title {
     font-size: 10px; font-weight: 700; text-transform: uppercase;
@@ -321,7 +365,7 @@
   }
   .uv-gran-btn.active { background: var(--army-green); color: #fff; border-color: var(--army-green); }
   .uv-gran-btn:hover { background: #000; color: var(--gold); border-color: #000; }
-  .uv-date-row { display: flex; flex-direction: column; gap: 4px; min-width: 320px; flex: 1; }
+  .uv-date-row { display: flex; flex-direction: column; gap: 4px; min-width: 0; width: 100%; }
   .uv-slider-wrap { position: relative; height: 34px; }
   .uv-slider-track { position: absolute; top: 14px; left: 0; right: 0; height: 6px; background: var(--border-subtle); border-radius: 3px; }
   .uv-slider-range { position: absolute; top: 14px; height: 6px; background: var(--army-green); border-radius: 3px; }
@@ -343,6 +387,45 @@
   .uv-slider-wrap input[type=range]::-moz-range-thumb:hover { background: #fff; }
   .uv-date-labels { display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; color: var(--text-primary); }
   .uv-date-labels .sub { font-size: 10px; color: var(--text-muted); font-weight: normal; }
+  .date-presets { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 6px; }
+  .date-preset {
+    padding: 5px 9px; border: 1px solid var(--border-subtle); border-radius: 999px;
+    background: var(--bg-primary); color: var(--army-green); font-size: 10px;
+    font-weight: 800; letter-spacing: .25px; cursor: pointer;
+  }
+  .date-preset:hover, .date-preset.active { background: var(--army-green); color: #fff; border-color: var(--army-green); }
+  .date-inputs { display: grid; grid-template-columns: minmax(130px,1fr) minmax(130px,1fr); gap: 8px; margin-top: 6px; }
+  .date-inputs label { display: flex; flex-direction: column; gap: 3px; font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+  .date-inputs input[type=date] { padding: 7px 8px; border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; color: var(--text-primary); font: inherit; font-size: 12px; }
+  .filter-status { min-height: 18px; margin-top: 6px; color: var(--text-muted); font-size: 11px; font-weight: 700; }
+  .filter-status.updating { color: #8a5b00; }
+  .data-status { display: none; margin-top: 12px; padding: 9px 12px; border-radius: 6px; background: #eef4e9; color: var(--army-green); font-size: 12px; font-weight: 700; }
+  .data-status.warn { display: block; background: #fff3cd; color: #6d4c00; }
+  .data-status.ok { display: block; }
+  .patient-pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 0; }
+  .patient-pager .summary { font-size: 12px; color: var(--text-muted); font-weight: 700; }
+  .patient-pager .pager-buttons { display: flex; gap: 6px; align-items: center; }
+  .patient-pager button { padding: 6px 10px; font-size: 11px; }
+  button:disabled, .drop-zone.disabled { opacity: .5; cursor: not-allowed; }
+  @media (max-width: 900px) {
+    .unit-controls .uv-drill-block,
+    .unit-controls .uv-gran-block { grid-column: span 6; }
+    .unit-controls .uv-esi-block,
+    .unit-controls .uv-date-row { grid-column: 1 / -1; }
+    .uv-stats-context { align-items: flex-start; }
+  }
+  @media (max-width: 640px) {
+    .date-inputs { grid-template-columns: 1fr; }
+    .uv-toolbar.unit-controls { grid-template-columns: 1fr; gap: 12px; }
+    .unit-controls .uv-drill-block,
+    .unit-controls .uv-gran-block,
+    .unit-controls .uv-esi-block,
+    .unit-controls .uv-date-row { grid-column: 1; }
+    .uv-gran-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .uv-gran-btn { width: 100%; }
+    .uv-stats-context { flex-direction: column; gap: 3px; }
+    .uv-stats-context .range { text-align: left; }
+  }
 
   /* Collapsible debug section */
   .collapsible { background: var(--bg-card); margin-top: 20px; border: 1px solid var(--border-subtle); border-left: 4px solid var(--gold); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
@@ -389,12 +472,13 @@
     </div>
 
     <div class="controls" style="margin-top: 15px;">
-      <button onclick="document.getElementById('fileInput').click()">Add Files</button>
-      <button onclick="clearAll()">Clear All</button>
+      <button id="btnAdd" onclick="document.getElementById('fileInput').click()">Add Files</button>
+      <button id="btnClear" onclick="clearAll()">Clear All</button>
       <button id="btnExport" onclick="exportCSV()" style="display:none;">Export CSV</button>
       <button id="btnSave" onclick="downloadDataJSON()" style="display:none;">Save Data File</button>
       <span class="file-list" id="fileList">No files loaded.</span>
     </div>
+    <div id="dataStatus" class="data-status" role="status" aria-live="polite"></div>
 
     <!-- Collapsible File Log - HIDDEN FOR HIPAA COMPLIANCE -->
     <div id="debugCollapsible" class="collapsible" style="display: none; margin-top: 15px;">
@@ -421,6 +505,15 @@
       <div class="uv-toolbar" style="padding: 12px 14px; background: var(--bg-card-hover); border: 1px solid var(--border-subtle); border-radius: var(--radius);">
         <div class="uv-block uv-date-row" style="width: 100%; min-width: auto; flex: 1;">
           <span class="uv-block-title">Date Range (Applies to all charts & tables below)</span>
+          <div class="date-presets" id="globalDatePresets">
+            <button class="date-preset" data-preset="30d" onclick="globalApplyPreset('30d')">30 Days</button>
+            <button class="date-preset" data-preset="90d" onclick="globalApplyPreset('90d')">90 Days</button>
+            <button class="date-preset" data-preset="6m" onclick="globalApplyPreset('6m')">6 Months</button>
+            <button class="date-preset" data-preset="1y" onclick="globalApplyPreset('1y')">1 Year</button>
+            <button class="date-preset" data-preset="2y" onclick="globalApplyPreset('2y')">2 Years</button>
+            <button class="date-preset" data-preset="ytd" onclick="globalApplyPreset('ytd')">YTD</button>
+            <button class="date-preset active" data-preset="all" onclick="globalApplyPreset('all')">All</button>
+          </div>
           <div class="uv-slider-wrap">
             <div class="uv-slider-track"></div>
             <div class="uv-slider-range" id="globalSliderRange"></div>
@@ -431,6 +524,11 @@
             <div><span id="globalDateLo">—</span><div class="sub">start</div></div>
             <div style="text-align:right;"><span id="globalDateHi">—</span><div class="sub">end</div></div>
           </div>
+          <div class="date-inputs">
+            <label>Custom start<input type="date" id="globalStartDate" onchange="globalApplyCustomDates()"></label>
+            <label>Custom end<input type="date" id="globalEndDate" onchange="globalApplyCustomDates()"></label>
+          </div>
+          <div id="globalFilterStatus" class="filter-status" role="status" aria-live="polite"></div>
         </div>
       </div>
     </div>
@@ -478,15 +576,19 @@
     <!-- ===== NEW: Unit Volume Over Time (replaces old battalion stacked bar) ===== -->
     <div class="panel">
       <h3>Unit Volume Over Time — BDE / BN / CO Drill-Down</h3>
+      <div class="uv-stats-context">
+        <strong>Cat 4/5 Impact by Brigade</strong>
+        <span class="range" id="uvStatsRangeLabel">Selected unit date range</span>
+      </div>
       <div class="uv-stats-row" id="uvStatsRow"></div>
 
-      <div class="uv-toolbar">
-        <div class="uv-block" style="flex:1; min-width:260px;">
+      <div class="uv-toolbar unit-controls">
+        <div class="uv-block uv-drill-block">
           <span class="uv-block-title">Drill Level</span>
           <div class="uv-breadcrumb" id="uvBreadcrumb"></div>
         </div>
 
-        <div class="uv-block">
+        <div class="uv-block uv-gran-block">
           <span class="uv-block-title">Granularity</span>
           <div class="uv-gran-row" id="uvGranRow">
             <button class="uv-gran-btn active" data-gran="auto"  onclick="uvSetGran('auto')">Auto</button>
@@ -496,7 +598,7 @@
           </div>
         </div>
 
-        <div class="uv-block">
+        <div class="uv-block uv-esi-block">
           <span class="uv-block-title">Acuity (ESI) Filter</span>
           <div class="uv-esi-row" id="uvEsiRow">
             <label><input type="checkbox" id="uvEsiRed"     checked onchange="renderUnitVolumeChart()"> Cat 1 🔴</label>
@@ -508,6 +610,15 @@
 
         <div class="uv-block uv-date-row">
           <span class="uv-block-title">Date Range</span>
+          <div class="date-presets" id="uvDatePresets">
+            <button class="date-preset active" data-preset="30d" onclick="uvApplyPreset('30d')">30 Days</button>
+            <button class="date-preset" data-preset="90d" onclick="uvApplyPreset('90d')">90 Days</button>
+            <button class="date-preset" data-preset="6m" onclick="uvApplyPreset('6m')">6 Months</button>
+            <button class="date-preset" data-preset="1y" onclick="uvApplyPreset('1y')">1 Year</button>
+            <button class="date-preset" data-preset="2y" onclick="uvApplyPreset('2y')">2 Years</button>
+            <button class="date-preset" data-preset="ytd" onclick="uvApplyPreset('ytd')">YTD</button>
+            <button class="date-preset" data-preset="all" onclick="uvApplyPreset('all')">All</button>
+          </div>
           <div class="uv-slider-wrap">
             <div class="uv-slider-track"></div>
             <div class="uv-slider-range" id="uvSliderRange"></div>
@@ -518,12 +629,17 @@
             <div><span id="uvDateLo">—</span><div class="sub">start</div></div>
             <div style="text-align:right;"><span id="uvDateHi">—</span><div class="sub">end</div></div>
           </div>
+          <div class="date-inputs">
+            <label>Custom start<input type="date" id="uvStartDate" onchange="uvApplyCustomDates()"></label>
+            <label>Custom end<input type="date" id="uvEndDate" onchange="uvApplyCustomDates()"></label>
+          </div>
+          <div id="uvFilterStatus" class="filter-status" role="status" aria-live="polite"></div>
         </div>
       </div>
 
       <canvas id="unitVolumeChart" style="max-height:420px;"></canvas>
       <div style="font-size:11px;color:#888;margin-top:6px;">
-        Line graph of timed ER check-ins over time. Drill from Brigade → Battalion → Company via the breadcrumb. Acuity checkboxes filter what each line counts (all on = total). Drag the date-range handles to widen or narrow the window. Click a legend label to toggle a line.
+        Line graph of timed ER check-ins over time. Drill from Brigade → Battalion → Company via the breadcrumb. Acuity checkboxes filter what each line counts (all on = total); the five Cat 4/5 impact cards remain independent of those checkboxes. Drag the handles to preview dates, then release to refresh. Click a legend label to toggle a line.
       </div>
       <div class="chart-insight" id="unitVolumeInsight"></div>
     </div>
@@ -552,6 +668,14 @@
 
     <div class="panel">
       <h3>All Trainee Check-Ins (All Days)</h3>
+      <div class="patient-pager">
+        <span class="summary" id="patientTableSummary">Showing 0 records</span>
+        <div class="pager-buttons">
+          <button id="patientPrev" onclick="setPatientPage(patientPage-1)">Previous</button>
+          <span class="summary" id="patientPageLabel">Page 1 of 1</span>
+          <button id="patientNext" onclick="setPatientPage(patientPage+1)">Next</button>
+        </div>
+      </div>
       <div style="overflow-x:auto; max-height:500px;">
         <table id="patientTable">
           <thead>
@@ -574,21 +698,26 @@
 </div>
 
 <div class="footer">
-  GLWACH Emergency Department — Built for internal command analytics. Single-page client-side app; no data leaves your browser.
+  GLWACH Emergency Department — Built for internal command analytics. De-identified operational data syncs through Firestore.
 </div>
 
 <script>
 /* ==========================================================
-   GLWACH ER Commander's Report Tracker  –  v23
-   - CHANGE: Replaced "Trainee Volume by Battalion (Last 7 Days)"
-     stacked bar with "Unit Volume Over Time" line chart featuring:
-       • BDE→BN→CO drill-down (breadcrumb navigation)
-       • draggable two-handle date-range slider (default last 30 days)
-       • ESI acuity checkbox filters (Cat1 / Cat2-3 / Cat4-5 / Unknown)
-       • Day/Week/Month/Auto granularity
-   - Added unit normalization layer (BN→BDE mapping, phonetic
-     company names, noisy battalion formats, leading/glued units).
+   GLWACH ER Commander's Report Tracker  –  v24
+   - Accuracy-first calendar keys and one verified Firestore document per day.
+   - Independent global/unit multi-year ranges with committed rendering.
+   - Paginated patients, reusable charts, staged migration, and hashed fallback.
    ========================================================== */
+
+const SCHEMA_VERSION = 2;
+const V2_DAYS_COLLECTION = 'dccs_data';
+const V2_DAY_PREFIX = 'er_day_v2_';
+const V2_META_COLLECTION = 'dccs_data';
+const V2_META_DOCUMENT = 'er_v2_meta';
+const LEGACY_DATA_DOCUMENT = 'er_data';
+const MISTAKEN_DATE_KEY = '2025-01-18';
+const METRIC_KEYS = ['census','medscreen','lwobs','ama','transfer','admitted','ambulance','trainees','cat1','cat23','cat45','unknown'];
+const PATIENT_PAGE_SIZE = 100;
 
 let allData     = [];
 let allPatients = [];
@@ -597,11 +726,23 @@ let debugLines  = [];
 
 let db = null;
 let syncEnabled = false;
-let unsubscribe = null;
+let unsubscribeData = null;
+let unsubscribeMeta = null;
+let storageMode = 'legacy';
+let v2Meta = null;
+let maintenanceMode = false;
+let currentFilteredData = [];
+let currentFilteredPatients = [];
+let patientPage = 1;
+let dailyTableDirty = true;
+let globalRenderTimer = null;
+let globalDragging = false;
+let globalRenderedRange = '';
 
 let globalState = {
   loIdx: null,
-  hiIdx: null
+  hiIdx: null,
+  preset: 'all'
 };
 let globalDateList = [];
 
@@ -623,7 +764,12 @@ function toggleDebug() {
   document.getElementById('debugCollapsible').classList.toggle('open');
 }
 function toggleDailyTable() {
-  document.getElementById('dailyCollapsible').classList.toggle('open');
+  const el = document.getElementById('dailyCollapsible');
+  el.classList.toggle('open');
+  if (el.classList.contains('open') && dailyTableDirty) {
+    renderDailyTable(currentFilteredData);
+    dailyTableDirty = false;
+  }
 }
 function arr(nl) { return nl ? Array.from(nl) : []; }
 
@@ -640,17 +786,144 @@ fi.addEventListener('change',    e  => handleFiles(e.target.files));
 function parseDateFromFilename(name) {
   const m = name.match(/(\d{1,2})[-_](\d{1,2})[-_](\d{4})/);
   if (!m) return null;
-  return new Date(parseInt(m[3],10), parseInt(m[1],10)-1, parseInt(m[2],10));
+  const year = parseInt(m[3],10);
+  const month = parseInt(m[1],10);
+  const day = parseInt(m[2],10);
+  const parsed = new Date(year, month-1, day);
+  if (parsed.getFullYear() !== year || parsed.getMonth() !== month-1 || parsed.getDate() !== day) return null;
+  return parsed;
+}
+function dateKeyFromValue(value) {
+  if (!value) return '';
+  if (typeof value === 'object' && typeof value.dateKey === 'string') return value.dateKey;
+  if (typeof value === 'string') {
+    const m = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+  }
+  const d = value && typeof value.toDate === 'function' ? value.toDate() : value;
+  if (!(d instanceof Date) || Number.isNaN(d.getTime())) return '';
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function dateFromKey(key) {
+  const m = String(key||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return null;
+  const d = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+function localDate(value) {
+  if (value instanceof Date) return value;
+  const key = dateKeyFromValue(value);
+  return dateFromKey(key);
+}
+function hydratePatient(patient, dateKey) {
+  const { name, traineeName, initials, date, dateKey: ignoredDateKey, _dateTs, ...safe } = patient || {};
+  const hydratedDate = dateFromKey(dateKey);
+  return { ...safe, dateKey, date: hydratedDate, _dateTs: hydratedDate ? hydratedDate.getTime() : 0 };
+}
+function hydrateDay(day) {
+  const metrics = day && day.metrics ? day.metrics : {};
+  const dateKey = (day && day.dateKey) || dateKeyFromValue(day && day.date);
+  const date = dateFromKey(dateKey);
+  const patients = Array.isArray(day && day.patients)
+    ? day.patients.map(p => hydratePatient(p, dateKey)).map(({date,dateKey,_dateTs,...p}) => p)
+    : [];
+  const hydrated = { ...day, ...metrics, dateKey, date, _dateTs: date ? date.getTime() : 0, patients };
+  delete hydrated.metrics;
+  return hydrated;
+}
+function hydrateLegacyPayload(payload, options={}) {
+  const excluded = options.excludeMistaken ? MISTAKEN_DATE_KEY : '';
+  const flatByDate = new Map();
+  (payload && Array.isArray(payload.allPatients) ? payload.allPatients : []).forEach(p => {
+    const key = dateKeyFromValue(p.date || p.dateKey);
+    if (!key || key === excluded) return;
+    if (!flatByDate.has(key)) flatByDate.set(key, []);
+    const { date, dateKey, _dateTs, name, traineeName, initials, ...safe } = p;
+    flatByDate.get(key).push(safe);
+  });
+  return (payload && Array.isArray(payload.allData) ? payload.allData : [])
+    .map(d => {
+      const key = dateKeyFromValue(d.dateKey || d.date);
+      const flatPatients = flatByDate.get(key);
+      return hydrateDay({ ...d, dateKey:key, patients: flatPatients || d.patients || [] });
+    })
+    .filter(d => d.dateKey && d.dateKey !== excluded);
+}
+function setDataset(days) {
+  allData = (days || []).map(hydrateDay).filter(d => d.dateKey).sort((a,b)=>a._dateTs-b._dateTs);
+  allPatients = allData.flatMap(d => (d.patients || []).map(p => hydratePatient(p, d.dateKey)));
+  sanitizeLoadedData();
 }
 function fmtDate(d) {
-  if (!d) return 'unknown';
-  return (d.getMonth()+1).toString().padStart(2,'0') + '/' +
-         d.getDate().toString().padStart(2,'0') + '/' + d.getFullYear();
+  const date = localDate(d);
+  if (!date) return 'unknown';
+  return (date.getMonth()+1).toString().padStart(2,'0') + '/' +
+         date.getDate().toString().padStart(2,'0') + '/' + date.getFullYear();
 }
 function fmtShortDate(d) {
-  if (!d) return '';
+  const date = localDate(d);
+  if (!date) return '';
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return months[d.getMonth()] + ' ' + d.getDate();
+  return months[date.getMonth()] + ' ' + date.getDate() + ', ' + date.getFullYear();
+}
+function stableNormalize(value) {
+  if (value instanceof Date) return dateKeyFromValue(value);
+  if (Array.isArray(value)) return value.map(stableNormalize);
+  if (value && typeof value === 'object') {
+    const normalized = {};
+    Object.keys(value).sort().forEach(key => {
+      if (value[key] !== undefined) normalized[key] = stableNormalize(value[key]);
+    });
+    return normalized;
+  }
+  return value;
+}
+function stableStringify(value) { return JSON.stringify(stableNormalize(value)); }
+async function sha256Hex(value) {
+  const bytes = new TextEncoder().encode(typeof value === 'string' ? value : stableStringify(value));
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2,'0')).join('');
+}
+function canonicalPatient(patient) {
+  return {
+    timeStr: patient.timeStr || '',
+    time: patient.time ? {hour:Number(patient.time.hour)||0, minute:Number(patient.time.minute)||0} : null,
+    count: Number(patient.count)||1,
+    company: patient.company || '',
+    battalion: patient.battalion || '',
+    bde: patient.bde || '',
+    acuity: patient.acuity || 'unknown',
+    fillHex: patient.fillHex || ''
+  };
+}
+function canonicalDayPayload(day) {
+  const metrics = {};
+  METRIC_KEYS.forEach(key => metrics[key] = Number(day[key]) || 0);
+  const patients = (day.patients || []).map(canonicalPatient)
+    .sort((a,b)=>stableStringify(a).localeCompare(stableStringify(b)));
+  return {
+    schemaVersion: SCHEMA_VERSION,
+    dateKey: day.dateKey || dateKeyFromValue(day.date),
+    filename: day.filename || '',
+    sheetUsed: day.sheetUsed || '',
+    metrics,
+    patients
+  };
+}
+function dayVisitCount(day) { return (day.patients || []).reduce((sum,p)=>sum+(Number(p.count)||1),0); }
+function dayComparable(day) { return stableStringify(canonicalDayPayload(hydrateDay(day))); }
+function describeDayDifference(existing, incoming) {
+  const lines = [];
+  METRIC_KEYS.forEach(key => {
+    const before = Number(existing[key])||0, after = Number(incoming[key])||0;
+    if (before !== after) lines.push(`${key}: ${before} → ${after}`);
+  });
+  const beforeGroups = (existing.patients||[]).length, afterGroups = (incoming.patients||[]).length;
+  const beforeVisits = dayVisitCount(existing), afterVisits = dayVisitCount(incoming);
+  if (beforeGroups !== afterGroups) lines.push(`patient groups: ${beforeGroups} → ${afterGroups}`);
+  if (beforeVisits !== afterVisits) lines.push(`trainee visits: ${beforeVisits} → ${afterVisits}`);
+  if (!lines.length && dayComparable(existing) !== dayComparable(incoming)) lines.push('patient unit/time/acuity details differ');
+  return lines;
 }
 function colLetterToIndex(letters) {
   let n = 0;
@@ -1071,21 +1344,24 @@ function classifyHex(hex) {
 
 /* ---- File handling ---- */
 async function handleFiles(files) {
+  if (maintenanceMode) { alert('Data changes are temporarily disabled while the verified migration is running.'); return; }
   const arrf=Array.from(files).filter(f=>/\.xlsx?$/i.test(f.name));
   if(!arrf.length){alert('Please drop .xlsx files only.');return;}
   if(!debugLines.length)document.getElementById('debugPanel').innerHTML='';
-  dbg('Loading '+arrf.length+' file(s)…','info');
+  dbg('Validating '+arrf.length+' file(s) before any data is written…','info');
+  const parsedDays=[];
+  const failures=[];
   for(const f of arrf){
     try{
       dbg('════════════════════════════════════════════','info');
       dbg('Opening: '+escapeHtml(f.name),'ok');
+      if (!parseDateFromFilename(f.name)) throw new Error('Filename must contain a valid MM-DD-YYYY or MM_DD_YYYY date.');
       const wb=await readXlsx(f);
       const parsed=parseWorkbook(wb,f.name);
       if(parsed){
-        allData    =allData.filter(d=>fmtDate(d.date)!==fmtDate(parsed.date));
-        allPatients=allPatients.filter(p=>fmtDate(p.date)!==fmtDate(parsed.date));
-        allData.push(parsed);
-        parsed.patients.forEach(p=>allPatients.push({...p,date:parsed.date}));
+        parsed.dateKey = dateKeyFromValue(parsed.date);
+        parsed.source = 'xlsx-import';
+        parsedDays.push(hydrateDay(parsed));
         dbg('PARSED '+fmtDate(parsed.date)+
             ' [sheet='+escapeHtml(parsed.sheetUsed)+']'+
             '  census='+parsed.census+
@@ -1096,11 +1372,70 @@ async function handleFiles(files) {
     }catch(err){
       dbg('ERROR parsing '+escapeHtml(f.name)+': '+escapeHtml(err.message),'err');
       console.error(err);
+      failures.push(`${f.name}: ${err.message}`);
     }
   }
-  render();
-  if (syncEnabled) {
-    await uploadToFirestore();
+  const duplicateKeys = [...new Set(parsedDays.map(d=>d.dateKey).filter((key,i,arr)=>arr.indexOf(key)!==i))];
+  if (duplicateKeys.length) failures.push(`Duplicate dates in this batch: ${duplicateKeys.join(', ')}`);
+  if (failures.length || parsedDays.length !== arrf.length) {
+    alert(`Nothing was written. Fix these import problems and try again:\n\n${failures.join('\n') || 'One or more files did not produce a usable daily record.'}`);
+    return;
+  }
+
+  parsedDays.sort((a,b)=>a._dateTs-b._dateTs);
+  const existingByDate = new Map(allData.map(d=>[d.dateKey,d]));
+  const selected=[];
+  let unchanged=0, replacements=0, additions=0, declinedReplacements=0;
+  for (const day of parsedDays) {
+    const existing=existingByDate.get(day.dateKey);
+    if (!existing) { selected.push(day); additions++; continue; }
+    if (dayComparable(existing) === dayComparable(day)) { unchanged++; continue; }
+    const differences=describeDayDifference(existing,day);
+    const replace=confirm(
+      `A record already exists for ${fmtDate(day.date)}.\n\n`+
+      `${differences.map(line=>'• '+line).join('\n')}\n\n`+
+      'Replace only this date with the imported workbook?'
+    );
+    if (replace) { selected.push(day); replacements++; }
+    else declinedReplacements++;
+  }
+  if (!selected.length) {
+    alert(`Nothing was written. All ${unchanged} matching date(s) were unchanged${declinedReplacements?` and ${declinedReplacements} replacement(s) were declined`:''}.`);
+    dbg('Validated batch contained no approved changes; no data was written.','ok');
+    fi.value='';
+    return;
+  }
+  const first=parsedDays[0], last=parsedDays[parsedDays.length-1];
+  const totalVisits=selected.reduce((sum,d)=>sum+dayVisitCount(d),0);
+  const approved=confirm(
+    `Import validation complete. No data has been written yet.\n\n`+
+    `Files parsed: ${parsedDays.length}\nDate range: ${fmtDate(first.date)} – ${fmtDate(last.date)}\n`+
+    `New dates: ${additions}\nApproved replacements: ${replacements}\nUnchanged/skipped: ${unchanged+declinedReplacements}\n`+
+    `Trainee visits in approved records: ${totalVisits}\n\nCommit these approved dates?`
+  );
+  if (!approved || !selected.length) { dbg('Import cancelled; no data was written.','warn'); return; }
+
+  const proposedMap = new Map(allData.map(d=>[d.dateKey,d]));
+  selected.forEach(day=>proposedMap.set(day.dateKey,day));
+  const proposed=[...proposedMap.values()].sort((a,b)=>a._dateTs-b._dateTs);
+  try {
+    if (syncEnabled && storageMode === 'v2') {
+      await commitV2DayChanges(selected, [], proposed);
+    } else if (syncEnabled) {
+      const previous=allData.slice();
+      setDataset(proposed);
+      const saved=await uploadToFirestore();
+      if (!saved) { setDataset(previous); throw new Error('Legacy Firestore write failed; the previous data was restored locally.'); }
+    }
+    setDataset(proposed);
+    saveLocalCache();
+    render();
+    dbg(`Committed ${selected.length} verified date(s).`, 'ok');
+  } catch (err) {
+    console.error(err);
+    alert(`Import failed before the local cache was updated. Existing stored dates were preserved.\n\n${err.message}`);
+  } finally {
+    fi.value='';
   }
 }
 
@@ -1232,7 +1567,7 @@ function parseSheet(best,date,filename){
 
   if(!checkInCell){
     dbg('  ✗ No "check-in time" header found and fallback failed','err');
-    return{filename,date,sheetUsed:sheetName,...metrics,trainees:0,cat1:0,cat23:0,cat45:0,unknown:0,patients:[]};
+    return{filename,date,dateKey:dateKeyFromValue(date),sheetUsed:sheetName,...metrics,trainees:0,cat1:0,cat23:0,cat45:0,unknown:0,patients:[]};
   }
 
   const colTime =checkInCell.col;
@@ -1354,6 +1689,7 @@ function parseSheet(best,date,filename){
   return {
     filename,
     date,
+    dateKey: dateKeyFromValue(date),
     sheetUsed: sheetName,
     ...metrics,
     trainees: patients.length,
@@ -1590,8 +1926,12 @@ let uvState = {
   gran:     'auto', // auto | day | week | month
   loIdx:    null,   // date slider low index (into uvDateList)
   hiIdx:    null,   // date slider high index
+  preset:   '30d',
 };
 let uvDateList = []; // sorted unique day-timestamps (number) across all data
+let uvCommitTimer = null;
+let uvDragging = false;
+let uvRenderedRange = '';
 
 function uvActiveEsi() {
   return {
@@ -1617,9 +1957,21 @@ function uvSetGran(g) {
 }
 
 /* Drill navigation */
-function uvGoBde() { uvState.level='bde'; uvState.bde=null; uvState.bn=null; renderUnitVolumeChart(); }
-function uvGoBn(bde) { uvState.level='bn'; uvState.bde=bde; uvState.bn=null; renderUnitVolumeChart(); }
-function uvGoCo(bn) { uvState.level='co'; uvState.bn=bn; renderUnitVolumeChart(); }
+function uvGoBde() {
+  uvState.level='bde'; uvState.bde=null; uvState.bn=null;
+  renderUnitVolumeChart();
+  renderUnitVolumeStats();
+}
+function uvGoBn(bde) {
+  uvState.level='bn'; uvState.bde=bde; uvState.bn=null;
+  renderUnitVolumeChart();
+  renderUnitVolumeStats();
+}
+function uvGoCo(bn) {
+  uvState.level='co'; uvState.bn=bn;
+  renderUnitVolumeChart();
+  renderUnitVolumeStats();
+}
 
 function uvRenderBreadcrumb() {
   const el = document.getElementById('uvBreadcrumb');
@@ -1671,8 +2023,8 @@ function uvBucketLabel(ts, gran) {
   const d = new Date(ts);
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   if (gran === 'month') return months[d.getMonth()] + ' ' + d.getFullYear();
-  if (gran === 'week')  return 'Wk ' + months[d.getMonth()] + ' ' + d.getDate();
-  return months[d.getMonth()] + ' ' + d.getDate();
+  if (gran === 'week')  return 'Wk ' + months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+  return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
 }
 
 /* Distinct color palette for unit lines */
@@ -1683,13 +2035,54 @@ const UV_PALETTE = [
   '#FFCC01','#006400','#8b008b','#ff1493','#00ced1'
 ];
 
+function presetStartTimestamp(preset, maxTs) {
+  const maxDate = new Date(maxTs);
+  const start = new Date(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate());
+  if (preset === '30d') start.setDate(start.getDate() - 29);
+  else if (preset === '90d') start.setDate(start.getDate() - 89);
+  else if (preset === '6m') start.setMonth(start.getMonth() - 6);
+  else if (preset === '1y') start.setFullYear(start.getFullYear() - 1);
+  else if (preset === '2y') start.setFullYear(start.getFullYear() - 2);
+  else if (preset === 'ytd') return new Date(maxDate.getFullYear(), 0, 1).getTime();
+  else return -Infinity;
+  return start.getTime();
+}
+function indicesForRange(dateList, startTs, endTs) {
+  if (!dateList.length) return {lo:0, hi:0};
+  let lo = dateList.findIndex(ts => ts >= startTs);
+  if (lo < 0) lo = dateList.length - 1;
+  let hi = dateList.length - 1;
+  for (let i=dateList.length-1; i>=0; i--) {
+    if (dateList[i] <= endTs) { hi=i; break; }
+  }
+  if (lo > hi) lo = hi;
+  return {lo,hi};
+}
+function setPresetButtons(containerId, preset) {
+  document.querySelectorAll(`#${containerId} .date-preset`).forEach(button => {
+    button.classList.toggle('active', button.dataset.preset === preset);
+  });
+}
+function syncCalendarInputs(prefix, dateList, loIdx, hiIdx) {
+  const start = document.getElementById(`${prefix}StartDate`);
+  const end = document.getElementById(`${prefix}EndDate`);
+  if (!start || !end) return;
+  if (!dateList.length) { start.value=''; end.value=''; return; }
+  const minKey = dateKeyFromValue(new Date(dateList[0]));
+  const maxKey = dateKeyFromValue(new Date(dateList[dateList.length-1]));
+  start.min = end.min = minKey;
+  start.max = end.max = maxKey;
+  start.value = dateKeyFromValue(new Date(dateList[loIdx]));
+  end.value = dateKeyFromValue(new Date(dateList[hiIdx]));
+}
+
 /* Build the date slider after data changes */
 function uvBuildDateSlider() {
   // unique day timestamps
   const set = new Set();
   allPatients.forEach(p => {
-    if (!p.date) return;
-    set.add(new Date(p.date.getFullYear(), p.date.getMonth(), p.date.getDate()).getTime());
+    if (!p._dateTs) return;
+    set.add(p._dateTs);
   });
   uvDateList = Array.from(set).sort((a,b)=>a-b);
 
@@ -1705,16 +2098,11 @@ function uvBuildDateSlider() {
   lo.min = '0'; lo.max = String(maxIdx);
   hi.min = '0'; hi.max = String(maxIdx);
 
-  // default: last 30 calendar days (by date value, not index)
-  const lastTs = uvDateList[maxIdx];
-  const cutoffTs = lastTs - 29*24*60*60*1000;
-  let defLo = 0;
-  for (let i = 0; i <= maxIdx; i++) {
-    if (uvDateList[i] >= cutoffTs) { defLo = i; break; }
-  }
-  uvState.loIdx = defLo;
+  const initial = indicesForRange(uvDateList, presetStartTimestamp('30d', uvDateList[maxIdx]), uvDateList[maxIdx]);
+  uvState.loIdx = initial.lo;
   uvState.hiIdx = maxIdx;
-  lo.value = String(defLo);
+  uvState.preset = '30d';
+  lo.value = String(initial.lo);
   hi.value = String(maxIdx);
   uvUpdateDateLabels();
 }
@@ -1735,6 +2123,59 @@ function uvUpdateDateLabels() {
   const hpct = maxIdx>0 ? (uvState.hiIdx/maxIdx)*100 : 100;
   rangeBar.style.left  = lpct + '%';
   rangeBar.style.width = (hpct - lpct) + '%';
+  syncCalendarInputs('uv', uvDateList, uvState.loIdx, uvState.hiIdx);
+  setPresetButtons('uvDatePresets', uvState.preset);
+}
+
+function uvRangeSignature() {
+  return `${uvState.loIdx}:${uvState.hiIdx}`;
+}
+function setUvUpdating(updating) {
+  const status = document.getElementById('uvFilterStatus');
+  if (!status) return;
+  status.classList.toggle('updating', updating);
+  status.textContent = updating ? 'Updating… release to refresh chart, insight, and cards.' : '';
+}
+function commitUnitVolumeRange(force=false) {
+  clearTimeout(uvCommitTimer);
+  uvCommitTimer = null;
+  if (!uvDateList.length) return;
+  const signature = uvRangeSignature();
+  if (!force && signature === uvRenderedRange) {
+    setUvUpdating(false);
+    return;
+  }
+  renderUnitVolumeChart();
+  renderUnitVolumeStats();
+  uvRenderedRange = signature;
+  setUvUpdating(false);
+}
+
+function uvApplyPreset(preset) {
+  if (!uvDateList.length) return;
+  const maxTs = uvDateList[uvDateList.length-1];
+  const range = indicesForRange(uvDateList, presetStartTimestamp(preset, maxTs), maxTs);
+  uvState.loIdx = range.lo;
+  uvState.hiIdx = range.hi;
+  uvState.preset = preset;
+  document.getElementById('uvSliderLo').value = String(range.lo);
+  document.getElementById('uvSliderHi').value = String(range.hi);
+  uvUpdateDateLabels();
+  commitUnitVolumeRange(true);
+}
+function uvApplyCustomDates() {
+  if (!uvDateList.length) return;
+  const start = dateFromKey(document.getElementById('uvStartDate').value);
+  const end = dateFromKey(document.getElementById('uvEndDate').value);
+  if (!start || !end) return;
+  const range = indicesForRange(uvDateList, start.getTime(), end.getTime());
+  uvState.loIdx = range.lo;
+  uvState.hiIdx = range.hi;
+  uvState.preset = 'custom';
+  document.getElementById('uvSliderLo').value = String(range.lo);
+  document.getElementById('uvSliderHi').value = String(range.hi);
+  uvUpdateDateLabels();
+  commitUnitVolumeRange(true);
 }
 
 /* Wire slider handles (called once at startup) */
@@ -1749,33 +2190,66 @@ function uvWireSlider() {
     }
     uvState.loIdx = l;
     uvState.hiIdx = h;
+    uvState.preset = 'custom';
     uvUpdateDateLabels();
-    renderUnitVolumeChart();
+    setUvUpdating(true);
+    clearTimeout(uvCommitTimer);
+    if (!uvDragging) {
+      uvCommitTimer = setTimeout(() => commitUnitVolumeRange(), 150);
+    }
+  }
+  function beginPointerInteraction() {
+    uvDragging = true;
+    clearTimeout(uvCommitTimer);
+  }
+  function endPointerInteraction() {
+    if (!uvDragging) return;
+    uvDragging = false;
+    commitUnitVolumeRange();
   }
   lo.addEventListener('input', onInput);
   hi.addEventListener('input', onInput);
+  lo.addEventListener('pointerdown', beginPointerInteraction);
+  hi.addEventListener('pointerdown', beginPointerInteraction);
+  const onChange = () => {
+    // Pointer release handles pointer gestures; keyboard input uses the 150 ms timer.
+    if (uvDragging || uvCommitTimer) return;
+    commitUnitVolumeRange();
+  };
+  lo.addEventListener('change', onChange);
+  hi.addEventListener('change', onChange);
+  window.addEventListener('pointerup', endPointerInteraction);
+  window.addEventListener('pointercancel', endPointerInteraction);
 }
 
 function renderUnitVolumeStats() {
   const container = document.getElementById('uvStatsRow');
+  const rangeLabel = document.getElementById('uvStatsRangeLabel');
   if (!container) return;
 
-  // Determine the 30-day window dates matching the Last 30 Days chart
-  const last30Days = allData.slice(-30);
-  if (!last30Days.length) {
-    container.innerHTML = '<div style="font-size:12px;color:#666;padding:10px;">No data loaded to compute last 30 days statistics.</div>';
+  if (!uvDateList.length) {
+    container.classList.remove('has-selection');
+    container.innerHTML = '<div style="font-size:12px;color:#666;padding:10px;">No data loaded for the selected unit date range.</div>';
+    if (rangeLabel) rangeLabel.textContent = 'No selected dates';
     return;
   }
 
-  const loTs = new Date(last30Days[0].date).getTime();
-  const hiTs = new Date(last30Days[last30Days.length - 1].date).getTime();
+  const loTs = uvDateList[uvState.loIdx];
+  const hiTs = uvDateList[uvState.hiIdx];
+  const spanDays = Math.round((hiTs - loTs) / (24*60*60*1000)) + 1;
+  const presetLabels = { '30d':'30 days', '90d':'90 days', '6m':'6 months', '1y':'1 year', '2y':'2 years', 'ytd':'YTD', 'all':'All dates' };
+  const cardRangeLabel = presetLabels[uvState.preset] || `${spanDays} day${spanDays === 1 ? '' : 's'}`;
+  if (rangeLabel) {
+    rangeLabel.textContent = `${fmtShortDate(new Date(loTs))} – ${fmtShortDate(new Date(hiTs))} · ${cardRangeLabel}`;
+  }
 
-  // Filter patients: within 30-day window, low acuity (Cat 4/5 ESI)
+  // Cards are intentionally date-only and permanently scoped to low-acuity Cat 4/5 visits.
   const greenPatients = allPatients.filter(p => {
-    if (!p.date || p.acuity !== 'green') return false;
-    const dts = p.date.getTime();
-    return dts >= loTs && dts <= hiTs;
+    if (!p._dateTs || p.acuity !== 'green') return false;
+    return p._dateTs >= loTs && p._dateTs <= hiTs;
   });
+  const selectedBde = uvState.level === 'bde' ? null : uvState.bde;
+  container.classList.toggle('has-selection', Boolean(selectedBde));
 
   const bdeColors = {
     '3rd Chemical BDE': '#4b5320',
@@ -1805,12 +2279,12 @@ function renderUnitVolumeStats() {
     const bgColor = bdeBgColors[bde] || 'rgba(0, 0, 0, 0.03)';
 
     return `
-      <div class="uv-stat-card" style="border-left: 5px solid ${color}; background-color: ${bgColor};">
+      <div class="uv-stat-card${selectedBde === bde ? ' is-selected' : ''}" data-bde="${escapeHtml(bde)}" style="border-left: 5px solid ${color}; background-color: ${bgColor};">
         <div class="uv-stat-card-title" style="color: ${color};">${bde}</div>
         <div class="uv-stat-card-body">
           <div class="uv-stat-metric">
             <span class="num">${trainees}</span>
-            <span class="sub">Inappropriate Trainees (30d)</span>
+            <span class="sub">Inappropriate Trainees (${cardRangeLabel})</span>
           </div>
           <div class="uv-stat-metric" style="text-align: right;">
             <span class="num" style="color: #a04000;">${hoursLost}h</span>
@@ -1826,7 +2300,6 @@ function renderUnitVolumeStats() {
 
 /* Core: compute datasets for current state and render */
 function renderUnitVolumeChart() {
-  destroyChart('unitVolume');
   uvRenderBreadcrumb();
 
   if (!uvDateList.length) {
@@ -1843,8 +2316,7 @@ function renderUnitVolumeChart() {
   // Filter patients: timed visits only, within date window, passing ESI filter
   const filtered = allPatients.filter(p => {
     if (!p.time || !p.date) return false;
-    const dts = new Date(p.date.getFullYear(), p.date.getMonth(), p.date.getDate()).getTime();
-    if (dts < loTs || dts > hiTs) return false;
+    if (p._dateTs < loTs || p._dateTs > hiTs) return false;
     if (!uvAcuityPasses(p.acuity, esi)) return false;
     // drill scoping
     if (uvState.level === 'bn'  && p.bde !== uvState.bde) return false;
@@ -1930,8 +2402,7 @@ function renderUnitVolumeChart() {
 
   const granLabel = gran.charAt(0).toUpperCase()+gran.slice(1);
 
-  const ctx = document.getElementById('unitVolumeChart').getContext('2d');
-  charts.unitVolume = new Chart(ctx, {
+  upsertChart('unitVolume', 'unitVolumeChart', {
     type: 'line',
     data: { labels, datasets },
     options: {
@@ -2030,10 +2501,12 @@ function generateUnitVolumeInsight(filtered, groups, seriesMap, spanDays, gran, 
    GLOBAL DATE SLIDER
    ========================================================== */
 function globalBuildDateSlider() {
+  const previousLoTs = globalDateList.length && globalState.loIdx !== null ? globalDateList[globalState.loIdx] : null;
+  const previousHiTs = globalDateList.length && globalState.hiIdx !== null ? globalDateList[globalState.hiIdx] : null;
   const set = new Set();
   allData.forEach(d => {
-    if (!d.date) return;
-    set.add(new Date(d.date.getFullYear(), d.date.getMonth(), d.date.getDate()).getTime());
+    if (!d._dateTs) return;
+    set.add(d._dateTs);
   });
   globalDateList = Array.from(set).sort((a,b)=>a-b);
 
@@ -2052,12 +2525,14 @@ function globalBuildDateSlider() {
   lo.min = '0'; lo.max = String(maxIdx);
   hi.min = '0'; hi.max = String(maxIdx);
 
-  if (globalState.loIdx === null || globalState.loIdx > maxIdx) {
-    globalState.loIdx = 0;
+  let range;
+  if (previousLoTs !== null && previousHiTs !== null) {
+    range = indicesForRange(globalDateList, previousLoTs, previousHiTs);
+  } else {
+    range = indicesForRange(globalDateList, presetStartTimestamp(globalState.preset || 'all', globalDateList[maxIdx]), globalDateList[maxIdx]);
   }
-  if (globalState.hiIdx === null || globalState.hiIdx > maxIdx || globalState.hiIdx < globalState.loIdx) {
-    globalState.hiIdx = maxIdx;
-  }
+  globalState.loIdx = range.lo;
+  globalState.hiIdx = range.hi;
   
   lo.value = String(globalState.loIdx);
   hi.value = String(globalState.hiIdx);
@@ -2081,8 +2556,30 @@ function globalUpdateDateLabels() {
   const hpct = maxIdx > 0 ? (globalState.hiIdx/maxIdx)*100 : 100;
   rangeBar.style.left  = lpct + '%';
   rangeBar.style.width = (hpct - lpct) + '%';
+  syncCalendarInputs('global', globalDateList, globalState.loIdx, globalState.hiIdx);
+  setPresetButtons('globalDatePresets', globalState.preset);
 }
 
+function setGlobalUpdating(updating) {
+  const el = document.getElementById('globalFilterStatus');
+  if (!el) return;
+  el.classList.toggle('updating', updating);
+  if (updating) {
+    el.textContent = 'Updating date selection… charts and tables will refresh when released.';
+  } else if (currentFilteredData.length) {
+    el.textContent = `${currentFilteredData.length} loaded day${currentFilteredData.length===1?'':'s'} in the selected range.`;
+  } else {
+    el.textContent = 'No loaded days in the selected range.';
+  }
+}
+function commitGlobalFilter(force=false) {
+  clearTimeout(globalRenderTimer);
+  const signature = `${globalState.loIdx}:${globalState.hiIdx}`;
+  if (!force && signature === globalRenderedRange) { setGlobalUpdating(false); return; }
+  renderFilteredResults(true);
+  globalRenderedRange = signature;
+  setGlobalUpdating(false);
+}
 function globalWireSlider() {
   const lo = document.getElementById('globalSliderLo');
   const hi = document.getElementById('globalSliderHi');
@@ -2094,21 +2591,65 @@ function globalWireSlider() {
     }
     globalState.loIdx = l;
     globalState.hiIdx = h;
+    globalState.preset = 'custom';
     globalUpdateDateLabels();
-    renderFilteredResults();
+    setGlobalUpdating(true);
+    clearTimeout(globalRenderTimer);
+    if (!globalDragging) globalRenderTimer = setTimeout(() => commitGlobalFilter(), 150);
+  }
+  function onPointerDown() { globalDragging = true; }
+  function onPointerUp() {
+    if (!globalDragging) return;
+    globalDragging = false;
+    commitGlobalFilter();
   }
   lo.addEventListener('input', onInput);
   hi.addEventListener('input', onInput);
+  lo.addEventListener('change', () => commitGlobalFilter());
+  hi.addEventListener('change', () => commitGlobalFilter());
+  lo.addEventListener('pointerdown', onPointerDown);
+  hi.addEventListener('pointerdown', onPointerDown);
+  window.addEventListener('pointerup', onPointerUp);
 }
 
-function renderFilteredResults() {
+function globalApplyPreset(preset) {
+  if (!globalDateList.length) return;
+  const maxTs = globalDateList[globalDateList.length-1];
+  const range = indicesForRange(globalDateList, presetStartTimestamp(preset, maxTs), maxTs);
+  globalState.loIdx = range.lo;
+  globalState.hiIdx = range.hi;
+  globalState.preset = preset;
+  document.getElementById('globalSliderLo').value = String(range.lo);
+  document.getElementById('globalSliderHi').value = String(range.hi);
+  globalUpdateDateLabels();
+  commitGlobalFilter(true);
+}
+function globalApplyCustomDates() {
+  if (!globalDateList.length) return;
+  const start = dateFromKey(document.getElementById('globalStartDate').value);
+  const end = dateFromKey(document.getElementById('globalEndDate').value);
+  if (!start || !end) return;
+  const range = indicesForRange(globalDateList, start.getTime(), end.getTime());
+  globalState.loIdx = range.lo;
+  globalState.hiIdx = range.hi;
+  globalState.preset = 'custom';
+  document.getElementById('globalSliderLo').value = String(range.lo);
+  document.getElementById('globalSliderHi').value = String(range.hi);
+  globalUpdateDateLabels();
+  commitGlobalFilter(true);
+}
+
+function renderFilteredResults(resetPage=false) {
   if (!globalDateList.length) {
+    currentFilteredData = [];
+    currentFilteredPatients = [];
     renderAggStats([]);
     renderFullHistoryChart([]);
     renderLast30Chart([]);
     renderHourChart([]);
     renderDowChart([]);
-    renderDailyTable([]);
+    if (document.getElementById('dailyCollapsible').classList.contains('open')) renderDailyTable([]);
+    else dailyTableDirty = true;
     renderPatientTable([]);
     return;
   }
@@ -2117,23 +2658,32 @@ function renderFilteredResults() {
 
   // Filter allData
   const filteredData = allData.filter(d => {
-    const ts = new Date(d.date.getFullYear(), d.date.getMonth(), d.date.getDate()).getTime();
-    return ts >= loTs && ts <= hiTs;
+    return d._dateTs >= loTs && d._dateTs <= hiTs;
   });
 
   // Filter allPatients
   const filteredPatients = allPatients.filter(p => {
-    if (!p.date) return false;
-    const ts = new Date(p.date.getFullYear(), p.date.getMonth(), p.date.getDate()).getTime();
-    return ts >= loTs && ts <= hiTs;
+    return p._dateTs >= loTs && p._dateTs <= hiTs;
+  }).sort((a,b)=>{
+    const dd=a._dateTs-b._dateTs; if(dd) return dd;
+    const ah=a.time?a.time.hour*60+a.time.minute:0,bh=b.time?b.time.hour*60+b.time.minute:0;
+    return ah-bh;
   });
+  currentFilteredData = filteredData;
+  currentFilteredPatients = filteredPatients;
+  if (resetPage) patientPage = 1;
 
   renderAggStats(filteredData);
   renderFullHistoryChart(filteredData);
   renderLast30Chart(filteredData);
   renderHourChart(filteredPatients);
   renderDowChart(filteredPatients);
-  renderDailyTable(filteredData);
+  if (document.getElementById('dailyCollapsible').classList.contains('open')) {
+    renderDailyTable(filteredData);
+    dailyTableDirty = false;
+  } else {
+    dailyTableDirty = true;
+  }
   renderPatientTable(filteredPatients);
 }
 
@@ -2153,13 +2703,18 @@ function render(){
   document.getElementById('emptyMsg').style.display='none';
   document.getElementById('btnExport').style.display='inline-block';
   document.getElementById('btnSave').style.display='inline-block';
-  allData.sort((a,b)=>(a.date||0)-(b.date||0));
+  allData.sort((a,b)=>a._dateTs-b._dateTs);
   
   globalBuildDateSlider();
   uvBuildDateSlider();
   renderUnitVolumeChart();
   renderUnitVolumeStats();
-  renderFilteredResults();
+  uvRenderedRange = uvRangeSignature();
+  setUvUpdating(false);
+  globalRenderedRange = '';
+  renderFilteredResults(true);
+  globalRenderedRange = `${globalState.loIdx}:${globalState.hiIdx}`;
+  setGlobalUpdating(false);
 }
 
 /* ---- Average helpers ---- */
@@ -2194,6 +2749,27 @@ function renderAggStats(data){
 }
 
 function destroyChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+function upsertChart(id, canvasId, config) {
+  const existing = charts[id];
+  if (!existing || existing.config.type !== config.type) {
+    destroyChart(id);
+    charts[id] = new Chart(document.getElementById(canvasId).getContext('2d'), config);
+    return charts[id];
+  }
+  const hidden = new Map();
+  existing.data.datasets.forEach((ds,i) => {
+    const key = ds.metricKey || ds.uvGroup || ds.label;
+    hidden.set(key, !existing.isDatasetVisible(i));
+  });
+  config.data.datasets.forEach(ds => {
+    const key = ds.metricKey || ds.uvGroup || ds.label;
+    if (hidden.has(key)) ds.hidden = hidden.get(key);
+  });
+  existing.data = config.data;
+  existing.options = config.options;
+  existing.update('none');
+  return existing;
+}
 
 /* ==========================================================
    TREND CHARTS
@@ -2343,8 +2919,7 @@ function renderTrendCharts() {
   const loTs = globalDateList[globalState.loIdx];
   const hiTs = globalDateList[globalState.hiIdx];
   const filteredData = allData.filter(d => {
-    const ts = new Date(d.date.getFullYear(), d.date.getMonth(), d.date.getDate()).getTime();
-    return ts >= loTs && ts <= hiTs;
+    return d._dateTs >= loTs && d._dateTs <= hiTs;
   });
   renderFullHistoryChart(filteredData);
   renderLast30Chart(filteredData);
@@ -2352,8 +2927,7 @@ function renderTrendCharts() {
 
 function renderFullHistoryChart(data){
   const targetData = data || allData;
-  destroyChart('fullHistory');
-  if(!targetData.length) return;
+  if(!targetData.length) { destroyChart('fullHistory'); document.getElementById('fullHistoryBadge').textContent='0 Days'; return; }
 
   const showTrend = document.getElementById('chkTrendlines').checked;
   const labels    = targetData.map(d => fmtShortDate(d.date));
@@ -2365,18 +2939,14 @@ function renderFullHistoryChart(data){
   const options = buildTrendChartOptions(showTrend, 'Date');
   options.plugins.legend.onClick = makeLegendClickHandler();
 
-  charts.fullHistory = new Chart(
-    document.getElementById('fullHistoryChart').getContext('2d'),
-    { type:'line', data:{ labels, datasets }, options }
-  );
+  upsertChart('fullHistory', 'fullHistoryChart', { type:'line', data:{ labels, datasets }, options });
 
   document.getElementById('fullHistoryInsight').innerHTML = generateFullHistoryInsight(targetData);
 }
 
 function renderLast30Chart(data){
   const targetData = data || allData;
-  destroyChart('last30');
-  if(!targetData.length) return;
+  if(!targetData.length) { destroyChart('last30'); document.getElementById('last30Badge').textContent='0 Days'; return; }
 
   const last30    = targetData.slice(-30);
   const showTrend = document.getElementById('chkTrendlines').checked;
@@ -2390,10 +2960,7 @@ function renderLast30Chart(data){
   options.plugins.legend.onClick = makeLegendClickHandler();
   options.scales.x.ticks.maxTicksLimit = 30;
 
-  charts.last30 = new Chart(
-    document.getElementById('last30Chart').getContext('2d'),
-    { type:'line', data:{ labels, datasets }, options }
-  );
+  upsertChart('last30', 'last30Chart', { type:'line', data:{ labels, datasets }, options });
 
   document.getElementById('last30Insight').innerHTML = generateLast30Insight(last30);
 }
@@ -2401,7 +2968,6 @@ function renderLast30Chart(data){
 /* ---- Other charts ---- */
 function renderHourChart(patients){
   const targetPatients = patients || allPatients;
-  destroyChart('hour');
   const totals=new Array(24).fill(0),low=new Array(24).fill(0);
   targetPatients.forEach(p=>{
     if(!p.time)return;
@@ -2410,7 +2976,7 @@ function renderHourChart(patients){
     if(p.acuity==='green')low[p.time.hour] += c;
   });
   const labels=totals.map((_,i)=>i.toString().padStart(2,'0')+':00');
-  charts.hour=new Chart(document.getElementById('hourChart').getContext('2d'),{
+  upsertChart('hour', 'hourChart', {
     type:'bar',data:{labels,datasets:[
       {label:'All Trainees',data:totals,backgroundColor:'#4b5320'},
       {label:'Cat 4/5 Trainees',data:low,backgroundColor:'#2e8b2e'}
@@ -2422,7 +2988,6 @@ function renderHourChart(patients){
 
 function renderDowChart(patients){
   const targetPatients = patients || allPatients;
-  destroyChart('dow');
   const names=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const totals=new Array(7).fill(0),low=new Array(7).fill(0);
   targetPatients.forEach(p=>{
@@ -2431,7 +2996,7 @@ function renderDowChart(patients){
     totals[p.date.getDay()] += c;
     if(p.acuity==='green')low[p.date.getDay()] += c;
   });
-  charts.dow=new Chart(document.getElementById('dowChart').getContext('2d'),{
+  upsertChart('dow', 'dowChart', {
     type:'bar',data:{labels:names,datasets:[
       {label:'All Trainees',data:totals,backgroundColor:'#4b5320'},
       {label:'Cat 4/5 Trainees',data:low,backgroundColor:'#2e8b2e'}
@@ -2453,7 +3018,7 @@ function renderDailyTable(data){
       <td style="background:#dff5d8;font-weight:bold">${d.cat45}</td>
       <td style="background:#eee;font-weight:bold;color:${d.unknown?'#c00':'#888'}">${d.unknown}</td>
       <td>
-        <button class="btn-delete" onclick="deleteDay('${d.date.toISOString()}')" title="Delete this day">✕</button>
+        <button class="btn-delete" onclick="deleteDay('${d.dateKey}')" title="Delete this day" ${maintenanceMode?'disabled':''}>✕</button>
       </td>
     </tr>`).join('');
 }
@@ -2490,55 +3055,84 @@ function renderPatientTable(patients){
   const targetPatients = patients || allPatients;
   const colorMap={red:'#fde0e0',orange:'#ffe7c2',green:'#dff5d8',unknown:'#f0f0f0'};
   const labelMap={red:'Cat 1 🔴',orange:'Cat 2/3 🟠',green:'Cat 4/5 🟢',unknown:'Unknown ⚪'};
-  const sorted=targetPatients.slice().sort((a,b)=>{
+  const sorted=targetPatients === currentFilteredPatients ? targetPatients : targetPatients.slice().sort((a,b)=>{
     const dd=(a.date||0)-(b.date||0);if(dd)return dd;
     const ah=a.time?a.time.hour*60+a.time.minute:0,bh=b.time?b.time.hour*60+b.time.minute:0;
     return ah-bh;
   });
-  document.getElementById('patientTableBody').innerHTML=sorted.map(p=>`
+  const totalPages = Math.max(1, Math.ceil(sorted.length/PATIENT_PAGE_SIZE));
+  patientPage = Math.min(Math.max(1,patientPage),totalPages);
+  const start = (patientPage-1)*PATIENT_PAGE_SIZE;
+  const pageRows = sorted.slice(start,start+PATIENT_PAGE_SIZE);
+  document.getElementById('patientTableBody').innerHTML=pageRows.map(p=>`
     <tr style="background:${colorMap[p.acuity]||'#fff'}">
       <td>${fmtDate(p.date)}</td><td>${p.timeStr}</td><td style="font-weight:bold">${p.count||1}</td>
       <td>${p.company}</td><td>${p.battalion}</td><td>${p.bde||''}</td>
       <td>${labelMap[p.acuity]||'Unknown'}</td>
       <td>${getERUsageLabel(p.acuity, p.count)}</td>
     </tr>`).join('');
+  document.getElementById('patientTableSummary').textContent = sorted.length
+    ? `Showing ${start+1}–${Math.min(start+PATIENT_PAGE_SIZE,sorted.length)} of ${sorted.length} records`
+    : 'Showing 0 records';
+  document.getElementById('patientPageLabel').textContent = `Page ${patientPage} of ${totalPages}`;
+  document.getElementById('patientPrev').disabled = patientPage <= 1;
+  document.getElementById('patientNext').disabled = patientPage >= totalPages;
+}
+function setPatientPage(page) {
+  patientPage = page;
+  renderPatientTable(currentFilteredPatients);
 }
 
-async function deleteDay(dateStr) {
-  const targetDate = new Date(dateStr);
+async function deleteDay(dateKey) {
+  if (maintenanceMode) { alert('Data changes are disabled during migration verification.'); return; }
+  const targetDate = dateFromKey(dateKey);
   const formattedDate = fmtDate(targetDate);
   const confirmed = confirm(`Are you sure you want to delete the daily log for ${formattedDate}? This will permanently remove it from the dashboard and database.`);
   if (!confirmed) return;
-
-  const targetIso = targetDate.toISOString().split('T')[0];
-  
-  allData = allData.filter(d => {
-    const dIso = d.date instanceof Date ? d.date.toISOString().split('T')[0] : String(d.date).split('T')[0];
-    return dIso !== targetIso;
-  });
-
-  allPatients = allPatients.filter(p => {
-    const pIso = p.date instanceof Date ? p.date.toISOString().split('T')[0] : String(p.date).split('T')[0];
-    return pIso !== targetIso;
-  });
-
-  dbg(`Deleted daily log for ${formattedDate}`, 'ok');
-
-  render();
-
-  if (syncEnabled) {
-    await uploadToFirestore();
+  const previous=allData.slice();
+  const proposed=allData.filter(d=>d.dateKey!==dateKey);
+  try {
+    if (syncEnabled && storageMode==='v2') {
+      await commitV2DayChanges([], [dateKey], proposed);
+    } else if (syncEnabled) {
+      setDataset(proposed);
+      if (!await uploadToFirestore()) throw new Error('Firestore did not confirm the deletion.');
+    }
+    setDataset(proposed);
+    saveLocalCache();
+    dbg(`Deleted daily log for ${formattedDate}`, 'ok');
+    render();
+  } catch (error) {
+    setDataset(previous);
+    render();
+    alert(`The date was not removed locally because the stored deletion failed.\n\n${error.message}`);
   }
 }
 
 async function clearAll() {
-  const confirmed = confirm("WARNING: This will permanently clear all ER data for ALL users on this website. Are you sure you want to proceed?");
-  if (!confirmed) return;
-
-  allData = [];
-  allPatients = [];
+  if (maintenanceMode) { alert('Data changes are disabled during migration verification.'); return; }
+  const confirmed = prompt('This removes all active ER dates. A JSON backup will download first. Type CLEAR ALL ER DATA to continue.');
+  if (confirmed !== 'CLEAR ALL ER DATA') return;
+  await downloadDataJSON('er-pre-clear-backup.json');
+  const previous=allData.slice();
+  try {
+    if (syncEnabled && storageMode==='v2') {
+      await commitV2DayChanges([], allData.map(d=>d.dateKey), []);
+    } else if (syncEnabled) {
+      setDataset([]);
+      if (!await uploadToFirestore()) throw new Error('Firestore did not confirm the clear operation.');
+    }
+    setDataset([]);
+    saveLocalCache();
+  } catch (error) {
+    setDataset(previous);
+    render();
+    alert(`Clear failed. The prior local dataset was restored.\n\n${error.message}`);
+    return;
+  }
   globalState.loIdx = null;
   globalState.hiIdx = null;
+  globalState.preset = 'all';
   globalDateList = [];
   Object.keys(charts).forEach(destroyChart);
   fi.value = '';
@@ -2548,29 +3142,8 @@ async function clearAll() {
   uvState.bn = null;
   document.getElementById('debugPanel').innerHTML = '<span class="debug-empty">No files parsed yet. Drop a file above to see parsing details.</span>';
   
-  // Clear local cache
-  try {
-    localStorage.removeItem('dccs-er-data');
-  } catch (e) {
-    console.warn("Failed to remove local cache:", e);
-  }
-
   render();
-
-  if (syncEnabled && db) {
-    try {
-      const payload = {
-        allData: [],
-        allPatients: [],
-        _lastUpdated: Date.now()
-      };
-      await db.collection("dccs_data").doc("er_data").set(payload);
-      dbg("Database successfully cleared online for all users.", "ok");
-    } catch (e) {
-      console.error("Failed to clear database online:", e);
-      dbg("Failed to clear database online. Check internet connection.", "err");
-    }
-  }
+  dbg('Active ER dataset cleared after backup and confirmed storage writes.', 'ok');
 }
 
 function exportCSV(){
@@ -2589,6 +3162,153 @@ function exportCSV(){
   a.href=URL.createObjectURL(blob);
   a.download='glwach_er_export.csv';
   a.click();
+}
+
+/* ==========================================================
+   VERIFIED V2 STORAGE — one canonical document per day
+   ========================================================== */
+let subscribedMode = '';
+let lastLegacyBackup = null;
+
+function showDataStatus(message, kind='ok') {
+  const el=document.getElementById('dataStatus');
+  if (!el) return;
+  el.textContent=message;
+  el.className=`data-status ${kind}`;
+}
+function updateMutationControls() {
+  ['btnAdd','btnClear'].forEach(id=>{ const el=document.getElementById(id); if(el)el.disabled=maintenanceMode; });
+  fi.disabled=maintenanceMode;
+  dz.classList.toggle('disabled',maintenanceMode);
+  document.querySelectorAll('.btn-delete').forEach(button=>button.disabled=maintenanceMode);
+  if (maintenanceMode) {
+    showDataStatus('Migration verification is in progress. Imports and destructive actions are temporarily disabled.','warn');
+  } else if (storageMode==='v2') {
+    showDataStatus('Verified Firestore v2 is active. Each date is stored and updated independently.','ok');
+  } else if (v2Meta && v2Meta.status==='failed') {
+    showDataStatus('V2 verification did not pass. The dashboard remains on the untouched legacy Firestore data.','warn');
+  } else {
+    showDataStatus('Legacy Firestore remains active until the staged v2 dataset is verified and activated.','ok');
+  }
+}
+function v2MetaRef() { return db.collection(V2_META_COLLECTION).doc(V2_META_DOCUMENT); }
+function legacyDataRef() { return db.collection('dccs_data').doc(LEGACY_DATA_DOCUMENT); }
+function v2DayRef(dateKey) { return db.collection(V2_DAYS_COLLECTION).doc(V2_DAY_PREFIX+dateKey); }
+function v2DaysQuery() {
+  return db.collection(V2_DAYS_COLLECTION)
+    .orderBy(firebase.firestore.FieldPath.documentId())
+    .startAt(V2_DAY_PREFIX)
+    .endAt(V2_DAY_PREFIX+'\uf8ff');
+}
+
+async function prepareDaysAndManifest(days, fallbackSource='legacy-firestore') {
+  const documents=[];
+  for (const hydrated of (days||[]).map(hydrateDay).sort((a,b)=>a._dateTs-b._dateTs)) {
+    const canonical=canonicalDayPayload(hydrated);
+    const contentHash=await sha256Hex(canonical);
+    documents.push({
+      ...canonical,
+      provenance: hydrated.provenance || hydrated.source || fallbackSource,
+      sourceFilename: hydrated.filename || '',
+      contentHash
+    });
+  }
+  const metricTotals={};
+  METRIC_KEYS.forEach(key=>metricTotals[key]=documents.reduce((sum,d)=>sum+(Number(d.metrics[key])||0),0));
+  const manifest={
+    schemaVersion:SCHEMA_VERSION,
+    dayCount:documents.length,
+    patientGroupCount:documents.reduce((sum,d)=>sum+d.patients.length,0),
+    visitCount:documents.reduce((sum,d)=>sum+d.patients.reduce((n,p)=>n+(Number(p.count)||1),0),0),
+    metricTotals,
+    firstDate:documents.length?documents[0].dateKey:'',
+    lastDate:documents.length?documents[documents.length-1].dateKey:'',
+    aggregateHash:await sha256Hex(documents.map(d=>({dateKey:d.dateKey,contentHash:d.contentHash})))
+  };
+  return {documents,manifest};
+}
+function saveLocalCache() {
+  try {
+    localStorage.setItem('dccs-er-v2-cache',JSON.stringify({
+      schemaVersion:SCHEMA_VERSION,
+      storageMode,
+      savedAt:Date.now(),
+      days:allData.map(d=>({
+        ...canonicalDayPayload(d),
+        provenance:d.provenance||d.source||storageMode
+      }))
+    }));
+  } catch(error) { console.warn('Failed to update verified local cache:',error); }
+}
+async function writeV2Operations(documents, deleteKeys=[]) {
+  const operations=[
+    ...documents.map(document=>({type:'set',document})),
+    ...deleteKeys.map(dateKey=>({type:'delete',dateKey}))
+  ];
+  for(let offset=0;offset<operations.length;offset+=400) {
+    const batch=db.batch();
+    operations.slice(offset,offset+400).forEach(operation=>{
+      if(operation.type==='set') {
+        batch.set(v2DayRef(operation.document.dateKey),{
+          ...operation.document,
+          recordType:'er-day-v2',
+          updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+        });
+      } else {
+        batch.delete(v2DayRef(operation.dateKey));
+      }
+    });
+    await batch.commit();
+  }
+}
+async function readV2Days() {
+  const snapshot=await v2DaysQuery().get();
+  return snapshot.docs.map(doc=>hydrateDay(doc.data())).sort((a,b)=>a._dateTs-b._dateTs);
+}
+async function verifyChangedV2Documents(documents, deleteKeys=[]) {
+  for(const document of documents) {
+    const snapshot=await v2DayRef(document.dateKey).get();
+    if(!snapshot.exists || snapshot.data().contentHash!==document.contentHash) throw new Error(`Stored verification failed for ${document.dateKey}.`);
+  }
+  for(const dateKey of deleteKeys) {
+    const snapshot=await v2DayRef(dateKey).get();
+    if(snapshot.exists) throw new Error(`Deletion verification failed for ${dateKey}.`);
+  }
+}
+async function commitV2DayChanges(upserts, deleteKeys, proposedDays) {
+  if(!syncEnabled||!db) throw new Error('Firestore is unavailable.');
+  const preparedChanges=await prepareDaysAndManifest(upserts,'xlsx-import');
+  await writeV2Operations(preparedChanges.documents,deleteKeys);
+  await verifyChangedV2Documents(preparedChanges.documents,deleteKeys);
+  const complete=await prepareDaysAndManifest(proposedDays,'verified-firestore');
+  await v2MetaRef().set({
+    status:'active',
+    ...complete.manifest,
+    sourceLegacyUpdatedAt:v2Meta&&v2Meta.sourceLegacyUpdatedAt?v2Meta.sourceLegacyUpdatedAt:null,
+    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+  },{merge:true});
+  return complete.manifest;
+}
+
+function serializeLegacyPayload() {
+  const serializedData=allData.map(day=>{
+    const {date,_dateTs,...stored}=day;
+    return {...stored,date:dateFromKey(day.dateKey).toISOString()};
+  });
+  const serializedPatients=allPatients.map(patient=>{
+    const {date,_dateTs,...stored}=patient;
+    return {...stored,date:dateFromKey(patient.dateKey).toISOString()};
+  });
+  return {allData:serializedData,allPatients:serializedPatients,_lastUpdated:Date.now()};
+}
+
+function downloadBlob(filename,content,type='application/json') {
+  const blob=new Blob([content],{type});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=filename;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 
 function initFirebase() {
@@ -2619,13 +3339,14 @@ async function loadFromDataJson() {
     const response = await fetch('data.json');
     if (response.ok) {
       const data = await response.json();
-      if (data && data.allData && data.allPatients) {
-        allData = data.allData.map(d => ({ ...d, date: new Date(d.date) }));
-        allPatients = data.allPatients.map(p => ({ ...p, date: p.date ? new Date(p.date) : null }));
-        sanitizeLoadedData();
-        dbg(`Loaded ${allData.length} days of baseline data from data.json`, 'ok');
-        render();
-      }
+      let days=[];
+      if(data&&data.schemaVersion===SCHEMA_VERSION&&Array.isArray(data.days)) days=data.days.map(hydrateDay);
+      else if(data&&Array.isArray(data.allData)) days=hydrateLegacyPayload(data,{excludeMistaken:true});
+      if(!days.length)return;
+      setDataset(days);
+      storageMode='fallback';
+      dbg(`Loaded ${allData.length} days from the timestamped data.json fallback`, 'ok');
+      render();
     }
   } catch (err) {
     dbg('No baseline data found in data.json: ' + err.message, 'info');
@@ -2633,121 +3354,233 @@ async function loadFromDataJson() {
 }
 
 async function uploadToFirestore() {
-  if (!syncEnabled || !db) return;
+  if (!syncEnabled || !db) return false;
   try {
-    const serializedData = allData.map(d => ({
-      ...d,
-      date: d.date instanceof Date ? d.date.toISOString() : d.date
-    }));
-    const serializedPatients = allPatients.map(p => ({
-      ...p,
-      date: p.date instanceof Date ? p.date.toISOString() : p.date
-    }));
-
-    const payload = {
-      allData: serializedData,
-      allPatients: serializedPatients,
-      _lastUpdated: Date.now()
-    };
-
-    // Save to local cache first
-    try {
-      localStorage.setItem('dccs-er-data', JSON.stringify(payload));
-    } catch (e) {
-      console.warn("Failed to write local cache:", e);
-    }
-
-    await db.collection("dccs_data").doc("er_data").set(payload);
+    const payload=serializeLegacyPayload();
+    await legacyDataRef().set(payload);
+    saveLocalCache();
     dbg("Data successfully uploaded to Firestore online database.", "ok");
+    return true;
   } catch (e) {
     console.error("Failed to upload data to Firestore:", e);
     dbg("Upload to online database failed. Check internet connection.", "err");
+    return false;
   }
 }
 
+function startLegacySubscription() {
+  if(subscribedMode==='legacy')return;
+  if(unsubscribeData)unsubscribeData();
+  subscribedMode='legacy';
+  storageMode='legacy';
+  updateMutationControls();
+  unsubscribeData=legacyDataRef().onSnapshot(doc=>{
+    if(doc.metadata.hasPendingWrites)return;
+    if(!doc.exists){
+      showDataStatus('Legacy Firestore data is unavailable. Showing only a local fallback if present.','warn');
+      return;
+    }
+    const serverData=doc.data()||{};
+    if(!Array.isArray(serverData.allData))return;
+    setDataset(hydrateLegacyPayload(serverData,{excludeMistaken:true}));
+    saveLocalCache();
+    dbg(`Synced ${allData.length} days from legacy Firestore`, 'ok');
+    render();
+  },error=>{
+    console.error('Legacy Firestore subscription failed:',error);
+    showDataStatus('Firestore connection lost. Showing the last verified local cache.','warn');
+  });
+}
+function startV2Subscription() {
+  if(subscribedMode==='v2')return;
+  if(unsubscribeData)unsubscribeData();
+  subscribedMode='v2';
+  storageMode='v2';
+  updateMutationControls();
+  unsubscribeData=v2DaysQuery().onSnapshot(snapshot=>{
+    if(snapshot.metadata.hasPendingWrites)return;
+    setDataset(snapshot.docs.map(doc=>hydrateDay(doc.data())));
+    saveLocalCache();
+    dbg(`Synced ${allData.length} verified day documents from Firestore v2`, 'ok');
+    render();
+  },error=>{
+    console.error('V2 Firestore subscription failed:',error);
+    showDataStatus('Verified Firestore connection lost. Showing the last verified local cache.','warn');
+  });
+}
+
 async function loadPersistentData() {
-  // 1. Load local cache first so it's instant
-  let hasLocalData = false;
+  let hasLocalData=false;
   try {
-    const cached = localStorage.getItem('dccs-er-data');
+    const cached=localStorage.getItem('dccs-er-v2-cache');
     if (cached) {
-      const data = JSON.parse(cached);
-      if (data && Array.isArray(data.allData)) {
-        allData = data.allData.map(d => ({ ...d, date: new Date(d.date) }));
-        allPatients = data.allPatients.map(p => ({ ...p, date: p.date ? new Date(p.date) : null }));
-        sanitizeLoadedData();
-        dbg(`Loaded ${allData.length} days of data from local cache`, 'ok');
+      const data=JSON.parse(cached);
+      if(data&&data.schemaVersion===SCHEMA_VERSION&&Array.isArray(data.days)){
+        setDataset(data.days);
+        storageMode=data.storageMode||'cache';
+        dbg(`Loaded ${allData.length} days from the verified local cache`, 'ok');
         render();
-        hasLocalData = true;
+        hasLocalData=true;
       }
     }
   } catch (e) {
     console.warn("Error loading local storage cache:", e);
   }
 
-  if (!syncEnabled || !db) {
-    if (!hasLocalData) {
-      await loadFromDataJson();
-    }
+  if(!hasLocalData){
+    try{
+      const legacyCached=localStorage.getItem('dccs-er-data');
+      if(legacyCached){
+        const data=JSON.parse(legacyCached);
+        const days=hydrateLegacyPayload(data,{excludeMistaken:true});
+        if(days.length){setDataset(days);storageMode='cache';render();hasLocalData=true;}
+      }
+    }catch(error){console.warn('Legacy cache could not be read:',error);}
+  }
+  if(!syncEnabled||!db){
+    if(!hasLocalData)await loadFromDataJson();
+    showDataStatus('Firestore is unavailable. The dashboard is using a local or bundled fallback.','warn');
     return;
   }
-
-  // Subscribe to real-time updates from Firestore
-  unsubscribe = db.collection("dccs_data").doc("er_data").onSnapshot(async (doc) => {
-    if (doc.metadata.hasPendingWrites) {
-      return;
-    }
-
-    if (doc.exists) {
-      const serverData = doc.data() || {};
-      if (Array.isArray(serverData.allData)) {
-        allData = serverData.allData.map(d => ({ ...d, date: new Date(d.date) }));
-        allPatients = serverData.allPatients.map(p => ({ ...p, date: p.date ? new Date(p.date) : null }));
-        sanitizeLoadedData();
-        
-        try {
-          localStorage.setItem('dccs-er-data', JSON.stringify({
-            allData: serverData.allData,
-            allPatients: serverData.allPatients,
-            _lastUpdated: serverData._lastUpdated || Date.now()
-          }));
-        } catch (e) {
-          console.warn("Failed to write local cache:", e);
-        }
-
-        dbg(`Synced ${allData.length} days of data from Firestore`, 'ok');
-        render();
-      }
-    } else {
-      dbg("Firestore document 'er_data' not found. Seeding database...", "warn");
-      if (!hasLocalData) {
-        await loadFromDataJson();
-      }
-      if (allData.length > 0) {
-        await uploadToFirestore();
-      }
-    }
-  }, (error) => {
-    console.error("Firestore sync subscription failed:", error);
-    dbg("Firestore connection lost. Operating in local mode.", "warn");
-    if (!hasLocalData && allData.length === 0) {
-      loadFromDataJson();
-    }
+  if(!hasLocalData)await loadFromDataJson();
+  unsubscribeMeta=v2MetaRef().onSnapshot(snapshot=>{
+    v2Meta=snapshot.exists?snapshot.data():{status:'legacy'};
+    maintenanceMode=['migrating','verified'].includes(v2Meta.status);
+    if(v2Meta.status==='active')startV2Subscription();
+    else startLegacySubscription();
+    updateMutationControls();
+  },error=>{
+    console.error('V2 metadata subscription failed:',error);
+    startLegacySubscription();
   });
 }
 
-function downloadDataJSON() {
+async function downloadDataJSON(filename='data.json') {
   if (!allData.length) { alert('No data to save.'); return; }
-  const payload = {
-    allData: allData,
-    allPatients: allPatients
+  const prepared=await prepareDaysAndManifest(allData,storageMode==='v2'?'verified-firestore':'fallback-snapshot');
+  const payload={
+    schemaVersion:SCHEMA_VERSION,
+    snapshotAt:new Date().toISOString(),
+    source:storageMode,
+    ...prepared.manifest,
+    days:prepared.documents
   };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'data.json';
-  a.click();
+  downloadBlob(filename,JSON.stringify(payload,null,2));
+  return payload;
 }
+
+function requireLocalMigrationHost() {
+  if(!['localhost','127.0.0.1'].includes(location.hostname)) throw new Error('Migration controls only run from a localhost copy of the verified application.');
+  if(!syncEnabled||!db) throw new Error('Firestore must be connected before migration.');
+}
+async function readLegacySnapshotForMigration() {
+  const snapshot=await legacyDataRef().get();
+  if(!snapshot.exists)throw new Error('The legacy Firestore source document does not exist.');
+  const payload=snapshot.data()||{};
+  if(!Array.isArray(payload.allData)||!Array.isArray(payload.allPatients))throw new Error('The legacy document does not contain the expected arrays.');
+  const payloadHash=await sha256Hex(payload);
+  const days=hydrateLegacyPayload(payload,{excludeMistaken:true});
+  return {payload,payloadHash,days,sourceUpdatedAt:payload._lastUpdated||null};
+}
+async function createLegacyMigrationBackup() {
+  requireLocalMigrationHost();
+  const source=await readLegacySnapshotForMigration();
+  const prepared=await prepareDaysAndManifest(source.days,'legacy-firestore');
+  const backup={
+    backupSchemaVersion:1,
+    createdAt:new Date().toISOString(),
+    sourcePath:`dccs_data/${LEGACY_DATA_DOCUMENT}`,
+    sourceUpdatedAt:source.sourceUpdatedAt,
+    sourcePayloadHash:source.payloadHash,
+    migrationManifest:prepared.manifest,
+    payload:source.payload
+  };
+  const stamp=new Date().toISOString().replace(/[:.]/g,'-');
+  downloadBlob(`er-legacy-backup-${stamp}.json`,JSON.stringify(backup,null,2));
+  lastLegacyBackup={...source,manifest:prepared.manifest};
+  return {sourceUpdatedAt:source.sourceUpdatedAt,payloadHash:source.payloadHash,...prepared.manifest};
+}
+async function clearV2StagingDocuments() {
+  const snapshot=await v2DaysQuery().get();
+  const keys=snapshot.docs.map(doc=>doc.id);
+  await writeV2Operations([],keys);
+  const verify=await v2DaysQuery().get();
+  if(!verify.empty)throw new Error('Could not clear the prior v2 staging documents.');
+}
+async function migrateLegacyToV2(expectedBackupHash) {
+  requireLocalMigrationHost();
+  if(!lastLegacyBackup)throw new Error('Create and save a legacy backup in this browser session first.');
+  if(expectedBackupHash!==lastLegacyBackup.payloadHash)throw new Error('The supplied backup hash does not match the saved legacy backup.');
+  const metaSnapshot=await v2MetaRef().get();
+  const meta=metaSnapshot.exists?metaSnapshot.data():{};
+  if(meta.status==='active')throw new Error('V2 is already active; staging migration will not overwrite it.');
+  try{
+    const source=await readLegacySnapshotForMigration();
+    if(source.payloadHash!==lastLegacyBackup.payloadHash||source.sourceUpdatedAt!==lastLegacyBackup.sourceUpdatedAt)throw new Error('Legacy Firestore changed after backup. Create a new backup and restart migration.');
+    await v2MetaRef().set({
+      schemaVersion:SCHEMA_VERSION,
+      status:'migrating',
+      sourceLegacyUpdatedAt:source.sourceUpdatedAt,
+      sourcePayloadHash:source.payloadHash,
+      startedAt:firebase.firestore.FieldValue.serverTimestamp()
+    },{merge:true});
+    await clearV2StagingDocuments();
+    const prepared=await prepareDaysAndManifest(source.days,'legacy-firestore');
+    await writeV2Operations(prepared.documents,[]);
+    const readBack=await readV2Days();
+    const verified=await prepareDaysAndManifest(readBack,'legacy-firestore');
+    if(stableStringify(prepared.manifest)!==stableStringify(verified.manifest))throw new Error('V2 read-back counts or canonical hashes do not match the legacy backup.');
+    const sourceAfter=await readLegacySnapshotForMigration();
+    if(sourceAfter.payloadHash!==source.payloadHash)throw new Error('Legacy Firestore changed during migration; activation was blocked.');
+    await v2MetaRef().set({
+      schemaVersion:SCHEMA_VERSION,
+      status:'verified',
+      ...verified.manifest,
+      sourceLegacyUpdatedAt:source.sourceUpdatedAt,
+      sourcePayloadHash:source.payloadHash,
+      verifiedAt:firebase.firestore.FieldValue.serverTimestamp(),
+      lastError:null
+    },{merge:true});
+    return verified.manifest;
+  }catch(error){
+    await v2MetaRef().set({status:'failed',lastError:String(error.message||error),failedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+    throw error;
+  }
+}
+async function activateVerifiedV2(expectedAggregateHash) {
+  requireLocalMigrationHost();
+  const snapshot=await v2MetaRef().get();
+  if(!snapshot.exists)throw new Error('V2 migration metadata does not exist.');
+  const meta=snapshot.data();
+  if(meta.status!=='verified')throw new Error(`V2 status is ${meta.status||'unknown'}, not verified.`);
+  if(meta.aggregateHash!==expectedAggregateHash)throw new Error('The supplied aggregate hash does not match verified metadata.');
+  const readBack=await readV2Days();
+  const verified=await prepareDaysAndManifest(readBack,'legacy-firestore');
+  if(stableStringify(verified.manifest)!==stableStringify({
+    schemaVersion:meta.schemaVersion,
+    dayCount:meta.dayCount,
+    patientGroupCount:meta.patientGroupCount,
+    visitCount:meta.visitCount,
+    metricTotals:meta.metricTotals,
+    firstDate:meta.firstDate,
+    lastDate:meta.lastDate,
+    aggregateHash:meta.aggregateHash
+  }))throw new Error('Final v2 verification changed; activation was blocked.');
+  await v2MetaRef().set({status:'active',activatedAt:firebase.firestore.FieldValue.serverTimestamp(),lastError:null},{merge:true});
+  return verified.manifest;
+}
+async function rollbackToLegacy() {
+  requireLocalMigrationHost();
+  await v2MetaRef().set({status:'legacy',rolledBackAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+  return 'Legacy reader reactivated; v2 documents were retained.';
+}
+window.ERMigration={
+  createLegacyBackup:createLegacyMigrationBackup,
+  migrateLegacyToV2,
+  activateVerifiedV2,
+  rollbackToLegacy,
+  readV2Manifest:async()=>prepareDaysAndManifest(await readV2Days(),'verified-firestore').then(result=>result.manifest)
+};
 
 /* ---- One-time wiring ---- */
 globalWireSlider();
